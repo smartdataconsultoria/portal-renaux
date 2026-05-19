@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Renaux Service | Acesse sua conta</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:        #0b1220;
+      --navy-mid:    #111d30;
+      --navy-card:   #13213a;
+      --navy-border: #1e3050;
+      --gold:        #c8922a;
+      --gold-light:  #e8a93a;
+      --gold-glow:   rgba(200,146,42,0.18);
+      --text:        #e8edf5;
+      --text-muted:  #5a7299;
+      --danger:      #e05555;
+      --success:     #34c97e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--navy);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Background pattern */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(200,146,42,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 10%, rgba(200,146,42,0.05) 0%, transparent 55%);
+      pointer-events: none; z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(200,146,42,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,146,42,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none; z-index: 0;
+    }
+
+    .card {
+      background: rgba(19, 33, 58, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--navy-border);
+      border-radius: 20px;
+      padding: 52px 48px;
+      width: 100%; max-width: 430px;
+      position: relative; z-index: 1;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(200,146,42,0.08);
+      animation: cardIn 0.5s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .logo-area { text-align: center; margin-bottom: 36px; }
+    .logo-badge {
+      width: 68px; height: 68px;
+      background: linear-gradient(145deg, var(--gold-light), var(--gold));
+      border-radius: 18px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 32px rgba(200,146,42,0.38), 0 0 0 6px rgba(200,146,42,0.08);
+    }
+    .logo-badge svg { width: 36px; height: 36px; fill: #fff; }
+    .logo-area h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 30px; letter-spacing: 2px;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .logo-area p { font-size: 12px; color: var(--text-muted); letter-spacing: .5px; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--navy-border), transparent);
+      margin: 0 0 28px;
+    }
+
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block; font-size: 10px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 8px;
+    }
+    .field-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .field-row label { margin-bottom: 0; }
+    .forgot { font-size: 11px; color: var(--gold); text-decoration: none; cursor: pointer; }
+    .forgot:hover { text-decoration: underline; }
+
+    .input-wrap { position: relative; }
+    input[type="email"], input[type="password"], input[type="text"] {
+      width: 100%;
+      background: rgba(11,18,32,0.7);
+      border: 1px solid var(--navy-border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200,146,42,0.12);
+    }
+    input::placeholder { color: var(--text-muted); }
+
+    .toggle-pwd {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); display: flex; align-items: center;
+      padding: 0; transition: color .2s;
+    }
+    .toggle-pwd:hover { color: var(--gold); }
+
+    .btn-login {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #fff; font-family: 'Poppins', sans-serif;
+      font-size: 14px; font-weight: 700;
+      border: none; border-radius: 10px;
+      cursor: pointer; margin-top: 8px;
+      letter-spacing: .5px;
+      transition: opacity .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(200,146,42,0.38);
+    }
+    .btn-login:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(200,146,42,0.48); }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .msg-box {
+      border-radius: 8px; font-size: 13px;
+      padding: 10px 14px; margin-bottom: 16px; display: none;
+    }
+    .msg-error  { background: rgba(224,85,85,.1); border: 1px solid rgba(224,85,85,.25); color: #f08080; }
+    .msg-success{ background: rgba(52,201,126,.1); border: 1px solid rgba(52,201,126,.25); color: #5ddb9a; }
+
+    .footer-brand {
+      text-align: center; margin-top: 30px;
+      font-size: 11px; color: var(--text-muted);
+    }
+    .footer-brand strong { color: var(--gold); }
+
+    .link-voltar {
+      display: block; text-align: center; margin-top: 18px;
+      font-size: 13px; color: var(--gold);
+      text-decoration: none; cursor: pointer;
+    }
+    .link-voltar:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- CARD LOGIN -->
+<div class="card" id="cardLogin">
+  <div class="logo-area">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" opacity=".9"/></svg>
+    </div>
+    <h1>RENAUX SERVICE</h1>
+    <p>Sistema de Gestão DH · Portal Interno</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="msg-box msg-error" id="loginError"></div>
+
+  <div class="field">
+    <label>E-mail</label>
+    <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" />
+  </div>
+
+  <div class="field">
+    <div class="field-row">
+      <label>Senha</label>
+      <a class="forgot" id="linkEsqueci">Esqueceu sua senha?</a>
+    </div>
+    <div class="input-wrap">
+      <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password" />
+      <button class="toggle-pwd" id="togglePwd" type="button">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <button class="btn-login" id="btnLogin">Entrar</button>
+
+  <div class="footer-brand">Desenvolvido pela <strong>SmartData</strong> Consultoria</div>
+</div>
+
+<!-- CARD RECUPERAR SENHA -->
+<div class="card" id="cardRecovery" style="display:none">
+  <div class="logo-area">
+    <div class="logo-badge">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+    </div>
+    <h1>RECUPERAR SENHA</h1>
+    <p>Enviaremos um link para seu e-mail</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="msg-box msg-error"    id="recoveryError"></div>
+  <div class="msg-box msg-success"  id="recoverySuccess"></div>
+
+  <div class="field">
+    <label>E-mail</label>
+    <input type="email" id="recoveryEmail" placeholder="seu@email.com" />
+  </div>
+
+  <button class="btn-login" id="btnRecovery">Enviar link de recuperação</button>
+  <a class="link-voltar" id="linkVoltar">← Voltar ao login</a>
+
+  <div class="footer-brand">Desenvolvido pela <strong>SmartData</strong> Consultoria</div>
+</div>
+
+<script>
+  const SUPABASE_URL  = 'https://rbahvyejqybajnufftio.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const inp = document.getElementById('senha');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  document.getElementById('senha').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  document.getElementById('btnLogin').addEventListener('click', login);
+
+  async function login() {
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value;
+    const btn = document.getElementById('btnLogin');
+    document.getElementById('loginError').style.display = 'none';
+    if (!email || !senha) { showMsg('loginError', 'Preencha e-mail e senha.'); return; }
+    btn.disabled = true; btn.textContent = 'Entrando…';
+    const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) {
+      showMsg('loginError', 'E-mail ou senha inválidos. Tente novamente.');
+      btn.disabled = false; btn.textContent = 'Entrar';
+    } else {
+      window.location.href = './dashboard.html';
+    }
+  }
+
+  document.getElementById('linkEsqueci').addEventListener('click', () => {
+    document.getElementById('cardLogin').style.display = 'none';
+    document.getElementById('cardRecovery').style.display = 'block';
+  });
+  document.getElementById('linkVoltar').addEventListener('click', () => {
+    document.getElementById('cardRecovery').style.display = 'none';
+    document.getElementById('cardLogin').style.display = 'block';
+  });
+  document.getElementById('recoveryEmail').addEventListener('keydown', e => { if (e.key === 'Enter') enviarRecuperacao(); });
+  document.getElementById('btnRecovery').addEventListener('click', enviarRecuperacao);
+
+  async function enviarRecuperacao() {
+    const email = document.getElementById('recoveryEmail').value.trim();
+    const btn = document.getElementById('btnRecovery');
+    document.getElementById('recoveryError').style.display = 'none';
+    document.getElementById('recoverySuccess').style.display = 'none';
+    if (!email) { showMsg('recoveryError', 'Informe seu e-mail.'); return; }
+    btn.disabled = true; btn.textContent = 'Enviando…';
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://renaux.smartdataconsultoria.com/reset-senha.html'
+    });
+    btn.disabled = false; btn.textContent = 'Enviar link de recuperação';
+    if (error) { showMsg('recoveryError', 'Erro ao enviar. Verifique o e-mail.'); }
+    else {
+      document.getElementById('recoverySuccess').textContent = 'Link enviado! Verifique sua caixa de entrada.';
+      document.getElementById('recoverySuccess').style.display = 'block';
+    }
+  }
+
+  function showMsg(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.style.display = 'block';
+  }
+
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) window.location.href = './dashboard.html';
+  })();
+</script>
+</body>
+</html>

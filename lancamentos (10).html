@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renaux Service | Lançamentos DH</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:        #0b1220;
+  --navy-mid:    #0f1a2e;
+  --navy-card:   #13213a;
+  --navy-border: #1e3050;
+  --gold:        #c8922a;
+  --gold-light:  #e8a93a;
+  --gold-glow:   rgba(200,146,42,.14);
+  --text:        #e8edf5;
+  --text-muted:  #5a7299;
+  --green:       #34c97e;
+  --danger:      #e05555;
+  --warn:        #f0a028;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Poppins',sans-serif;background:var(--navy);color:var(--text)}
+
+#tela-loading{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px}
+.loading-logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--text)}
+.loading-logo span{color:var(--gold)}
+.spinner{width:36px;height:36px;border:2px solid rgba(200,146,42,.15);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#app{display:none;height:100vh;flex-direction:column}
+
+/* TOPBAR */
+.topbar{height:60px;background:var(--navy-mid);border-bottom:1px solid var(--navy-border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.t-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.t-logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--gold-light),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center}
+.t-logo-icon svg{width:18px;height:18px;fill:#fff}
+.t-logo-nome{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--text)}
+.t-logo-nome span{color:var(--gold)}
+.t-right{display:flex;align-items:center;gap:10px}
+.t-btn{background:transparent;border:1px solid var(--navy-border);border-radius:7px;color:var(--text-muted);padding:6px 14px;font-size:11px;cursor:pointer;transition:all .2s;font-family:'Poppins',sans-serif;text-decoration:none;display:flex;align-items:center;gap:5px}
+.t-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--navy-mid);border-right:1px solid var(--navy-border);padding:20px 10px;flex-shrink:0;overflow-y:auto}
+.sb-head{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold);padding:4px 12px 14px;border-bottom:1px solid var(--navy-border);margin-bottom:10px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:12px;color:rgba(232,237,245,.5);font-weight:500;border:none;background:none;width:100%;text-align:left}
+.sb-item:hover{background:var(--gold-glow);color:var(--text)}
+.sb-item.ativo{background:var(--gold-glow);color:var(--gold-light);font-weight:600;border-left:2px solid var(--gold)}
+.sb-num{margin-left:auto;background:rgba(200,146,42,.2);color:var(--gold);border-radius:20px;padding:1px 8px;font-size:10px;font-weight:700;min-width:20px;text-align:center}
+.sb-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;flex-shrink:0}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:32px 44px;background:var(--navy)}
+.page-head{margin-bottom:28px}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:var(--text);margin-bottom:4px}
+.page-title span{color:var(--gold)}
+.page-sub{font-size:12px;color:var(--text-muted)}
+
+/* MODULE CONTAINER */
+.module{display:none}
+.module.ativo{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.sec-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';width:3px;height:16px;background:var(--gold);border-radius:2px;flex-shrink:0}
+
+/* FORM CARD */
+.form-card{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:14px;padding:28px;margin-bottom:28px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.form-grid.col2{grid-template-columns:1fr 1fr}
+.form-grid.col3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.col1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--text-muted)}
+.field input,.field select,.field textarea{background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;transition:border .2s;width:100%}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,146,42,.1)}
+.field select option{background:var(--navy-mid)}
+.field textarea{resize:vertical;min-height:80px}
+.field input::placeholder{color:var(--text-muted)}
+
+.form-actions{display:flex;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--navy-border);flex-wrap:wrap}
+.btn-save{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#fff;border:none;border-radius:8px;padding:11px 26px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s;box-shadow:0 4px 14px rgba(200,146,42,.3)}
+.btn-save:hover{opacity:.9;transform:translateY(-1px)}
+.btn-save:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-clear{background:transparent;border:1px solid var(--navy-border);border-radius:8px;color:var(--text-muted);padding:11px 20px;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-clear:hover{border-color:rgba(232,237,245,.3);color:var(--text)}
+
+/* TABLE */
+.tbl-wrap{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:14px;overflow:hidden;margin-bottom:28px}
+.tbl-head{padding:16px 22px;border-bottom:1px solid var(--navy-border);display:flex;align-items:center;justify-content:space-between}
+.tbl-head-title{font-size:13px;font-weight:700;color:var(--text)}
+.tbl-count{font-size:11px;color:var(--text-muted)}
+.btn-export{display:flex;align-items:center;gap:6px;background:rgba(52,201,126,.1);border:1px solid rgba(52,201,126,.25);color:var(--green);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-export:hover{background:rgba(52,201,126,.2);border-color:rgba(52,201,126,.5)}
+.btn-export svg{width:13px;height:13px}
+.btn-modelo{display:flex;align-items:center;gap:6px;background:rgba(200,146,42,.1);border:1px solid rgba(200,146,42,.28);color:var(--gold);border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-modelo:hover{background:rgba(200,146,42,.2);border-color:rgba(200,146,42,.5)}
+.btn-modelo svg{width:13px;height:13px}
+.btn-import{display:flex;align-items:center;gap:6px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.28);color:#7ab3f7;border-radius:7px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-import:hover{background:rgba(79,142,247,.2);border-color:rgba(79,142,247,.5)}
+.btn-import svg{width:13px;height:13px}
+.btn-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#input-import{display:none}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{text-align:left;padding:10px 16px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--text-muted);background:rgba(30,48,80,.3);border-bottom:1px solid var(--navy-border)}
+tbody td{padding:11px 16px;border-bottom:1px solid rgba(30,48,80,.4);color:rgba(232,237,245,.75);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(200,146,42,.025)}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600}
+.badge-green{background:rgba(52,201,126,.12);color:var(--green)}
+.badge-red{background:rgba(224,85,85,.12);color:var(--danger)}
+.badge-warn{background:rgba(240,160,40,.12);color:var(--warn)}
+.badge-gold{background:var(--gold-glow);color:var(--gold)}
+.btn-del{background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);color:var(--danger);border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-del:hover{background:rgba(224,85,85,.2)}
+.tbl-empty{text-align:center;padding:40px;color:var(--text-muted);font-size:12px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:22px;background:rgba(30,48,80,.4);border:1px solid var(--navy-border);border-radius:9px;padding:4px;width:fit-content}
+.tab{padding:7px 18px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--text-muted);border:none;background:none;font-family:'Poppins',sans-serif;transition:all .2s;white-space:nowrap}
+.tab.ativo{background:var(--gold-glow);color:var(--gold);font-weight:600}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--navy-card);border:1px solid var(--navy-border);color:var(--text);padding:11px 18px;border-radius:9px;font-size:12px;font-weight:500;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:320px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{border-color:rgba(52,201,126,.4);color:var(--green)}
+#toast.err{border-color:rgba(224,85,85,.4);color:var(--danger)}
+
+@media(max-width:768px){
+  .main{padding:18px 14px}
+  .sidebar{display:none}
+  .form-grid,.form-grid.col2,.form-grid.col3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="tela-loading">
+  <div class="loading-logo"><span>RENAUX</span> SERVICE</div>
+  <div class="spinner"></div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <a class="t-logo" href="#">
+      <div class="t-logo-icon"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></div>
+      <span class="t-logo-nome"><span>RENAUX</span> SERVICE</span>
+    </a>
+    <div class="t-right">
+      <a class="t-btn" href="./dashboard.html">← Voltar ao Portal</a>
+      <span id="topEmail" style="font-size:11px;color:var(--text-muted)"></span>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+            <div class="sb-head">LANÇAMENTOS DH</div>
+      <button class="sb-item ativo" onclick="abrirModulo('hcp')" id="sb-hcp">
+        <span class="sb-dot"></span> HCP
+        <span class="sb-num" id="cnt-hcp">0</span>
+      </button>
+      <button class="sb-item" onclick="abrirModulo('colaboradores')" id="sb-colaboradores">
+        <span class="sb-dot"></span> Colaboradores
+        <span class="sb-num" id="cnt-colab">0</span>
+      </button>
+      <button class="sb-item" onclick="abrirModulo('absentes')" id="sb-absentes">
+        <span class="sb-dot"></span> Absenteísmo
+        <span class="sb-num" id="cnt-absentes">0</span>
+      </button>
+      <button class="sb-item" onclick="abrirModulo('metas')" id="sb-metas">
+        <span class="sb-dot"></span> Metas
+      </button>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: HCP — VAGAS
+      ══════════════════════════════════════════ -->
+      <div class="module ativo" id="mod-hcp">
+        <div class="page-head">
+          <div class="page-title">HCP — <span>Controle de Vagas</span></div>
+          <div class="page-sub">Registre solicitações de vagas, substituições e contratos novos.</div>
+        </div>
+
+        <div class="form-card">
+          <div class="sec-hd"><div class="sec-title">Nova Vaga HCP</div></div>
+          <div class="form-grid col3">
+            <div class="field">
+              <label>Período — Mês</label>
+              <select id="hcp-mes">
+                <option value="">Selecione...</option>
+                <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Período — Ano</label>
+              <input type="number" id="hcp-ano" placeholder="2025" min="2024" max="2030">
+            </div>
+            <div class="field">
+              <label>ID PVE</label>
+              <input type="text" id="hcp-idpve" placeholder="Ex: 20250514 ou SEM PVE">
+            </div>
+            <div class="field">
+              <label>Incluído em</label>
+              <input type="date" id="hcp-incluido">
+            </div>
+            <div class="field">
+              <label>Liberado em</label>
+              <input type="date" id="hcp-liberado">
+            </div>
+            <div class="field">
+              <label>Motivo</label>
+              <select id="hcp-motivo">
+                <option value="">Selecione...</option>
+                <option>SUBSTITUIÇÃO</option>
+                <option>CONTRATO NOVO</option>
+                <option>FERISTA</option>
+                <option>AUMENTO DE QUADRO</option>
+                <option>DEMISSÃO NA JUSTA CAUSA</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Data Necessidade</label>
+              <input type="date" id="hcp-necessidade">
+            </div>
+            <div class="field">
+              <label>Data Assinatura Contrato</label>
+              <input type="date" id="hcp-assinatura">
+            </div>
+            <div class="field">
+              <label>Data Início Contrato</label>
+              <input type="date" id="hcp-inicio">
+            </div>
+            <div class="field">
+              <label>Departamento / Cliente</label>
+              <select id="hcp-depto"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <select id="hcp-regional">
+                <option value="">Selecione...</option>
+                <option value="1">PE</option>
+                <option value="2">SP</option>
+                <option value="3">ADM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Coordenador</label>
+              <select id="hcp-coord">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Função</label>
+              <input type="text" id="hcp-funcao" placeholder="Ex: AUXILIAR DE OPERAÇÃO">
+            </div>
+            <div class="field">
+              <label>Tipo de Vaga</label>
+              <select id="hcp-tipovaga">
+                <option value="">Selecione...</option>
+                <option>SUBSTITUIÇÃO</option>
+                <option>CONTRATO NOVO</option>
+                <option>FERISTA</option>
+                <option>AUMENTO DE QUADRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Matrícula — Funcionário Substituído</label>
+              <input type="text" id="hcp-subst" placeholder="Matrícula (se substituição)">
+            </div>
+            <div class="field">
+              <label>Matrícula — Funcionário Contratado</label>
+              <input type="text" id="hcp-contrat" placeholder="Matrícula do admitido">
+            </div>
+            <div class="field full">
+              <label>Observação / Motivo Detalhado</label>
+              <textarea id="hcp-obs" placeholder="Descreva o motivo do atraso, particularidades do cliente, etc."></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" id="btn-save-hcp" onclick="salvarHcp()">Salvar Vaga</button>
+            <button class="btn-clear" onclick="limparForm('hcp')">Limpar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div class="tbl-head-title">Vagas registradas</div>
+            <div class="btn-group"><div class="tbl-count" id="tbl-hcp-count">0 registros</div><button class="btn-export" onclick="exportarExcel('hcp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar Excel</button><button class="btn-modelo" onclick="baixarModelo('hcp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Baixar Modelo</button><button class="btn-import" onclick="abrirImport('hcp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Planilha</button></div><input type="file" id="import-hcp" accept=".xlsx,.xls" onchange="importarPlanilha(this,'hcp')" style="display:none">
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Mês/Ano</th><th>ID PVE</th><th>Motivo</th><th>Tipo Vaga</th><th>Departamento</th><th>Coord.</th><th>Função</th><th></th></tr></thead>
+              <tbody id="tbody-hcp"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: ABSENTEÍSMO
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-absentes">
+        <div class="page-head">
+          <div class="page-title">Absenteísmo — <span>Registro de Faltas</span></div>
+          <div class="page-sub">Registre faltas justificadas (com CID) e injustificadas por colaborador.</div>
+        </div>
+
+        <div class="tabs" id="tabs-absentes">
+          <button class="tab ativo" onclick="tabAbsentes('falta')">Lançar Falta</button>
+          <button class="tab" onclick="tabAbsentes('calendario')">Dias Úteis por Escala</button>
+        </div>
+
+        <!-- TAB: LANÇAR FALTA -->
+        <div id="tab-absentes-falta">
+          <div class="form-card">
+            <div class="sec-hd"><div class="sec-title">Nova Ocorrência de Falta</div></div>
+            <div class="form-grid col3">
+              <div class="field">
+                <label>Mês</label>
+                <select id="abs-mes">
+                  <option value="">Selecione...</option>
+                  <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                  <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                  <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                  <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Ano</label>
+                <input type="number" id="abs-ano" placeholder="2025" min="2024" max="2030">
+              </div>
+              <div class="field">
+                <label>Matrícula</label>
+                <input type="text" id="abs-matricula" placeholder="Ex: 241758" oninput="buscarColabAbs()">
+              </div>
+              <div class="field full" id="abs-colab-info" style="display:none">
+                <div style="background:var(--gold-glow);border:1px solid rgba(200,146,42,.2);border-radius:8px;padding:10px 14px;font-size:12px">
+                  <span id="abs-colab-nome" style="font-weight:600;color:var(--text)"></span>
+                  <span id="abs-colab-cargo" style="color:var(--text-muted)"></span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Data Início da Falta</label>
+                <input type="date" id="abs-inicio">
+              </div>
+              <div class="field">
+                <label>Data Final da Falta</label>
+                <input type="date" id="abs-fim">
+              </div>
+              <div class="field">
+                <label>Regional</label>
+                <select id="abs-regional">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Coordenador</label>
+                <select id="abs-coord"><option value="">Selecione...</option></select>
+              </div>
+              <div class="field">
+                <label>Status da Falta</label>
+                <select id="abs-status" onchange="toggleCid()">
+                  <option value="">Selecione...</option>
+                  <option>JUSTIFICADA</option>
+                  <option>INJUSTIFICADA</option>
+                  <option>DISCIPLINADA</option>
+                </select>
+              </div>
+              <div class="field" id="abs-cid-field" style="display:none">
+                <label>CID</label>
+                <select id="abs-cid">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+              <div class="field" id="abs-cid-detalhe-field" style="display:none">
+                <label>Detalhe do CID</label>
+                <input type="text" id="abs-cid-detalhe" placeholder="Descrição do diagnóstico">
+              </div>
+              <div class="field">
+                <label>Escala</label>
+                <select id="abs-escala">
+                  <option value="">Selecione...</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-save" id="btn-save-abs" onclick="salvarFalta()">Salvar Falta</button>
+              <button class="btn-clear" onclick="limparForm('abs')">Limpar</button>
+            </div>
+          </div>
+
+          <div class="tbl-wrap">
+            <div class="tbl-head">
+              <div class="tbl-head-title">Faltas registradas</div>
+              <div class="btn-group"><div class="tbl-count" id="tbl-abs-count">0 registros</div><button class="btn-export" onclick="exportarExcel('absentes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar Excel</button><button class="btn-modelo" onclick="baixarModelo('absentes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Baixar Modelo</button><button class="btn-import" onclick="abrirImport('absentes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Planilha</button></div><input type="file" id="import-absentes" accept=".xlsx,.xls" onchange="importarPlanilha(this,'absentes')" style="display:none">
+            </div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Mês/Ano</th><th>Matrícula</th><th>Colaborador</th><th>Início</th><th>Fim</th><th>Status</th><th>CID</th><th></th></tr></thead>
+                <tbody id="tbody-absentes"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: DIAS ÚTEIS -->
+        <div id="tab-absentes-calendario" style="display:none">
+          <div class="form-card">
+            <div class="sec-hd"><div class="sec-title">Calendário de Dias Úteis por Escala</div></div>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:18px">Preencha uma vez por mês. Esses dados são usados para calcular o denominador do absenteísmo.</p>
+            <div class="form-grid col3">
+              <div class="field">
+                <label>Mês</label>
+                <select id="cal-mes">
+                  <option value="">Selecione...</option>
+                  <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                  <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                  <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                  <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Ano</label>
+                <input type="number" id="cal-ano" placeholder="2025" min="2024" max="2030">
+              </div>
+              <div class="field">
+                <label>Escala</label>
+                <select id="cal-escala"><option value="">Selecione...</option></select>
+              </div>
+              <div class="field">
+                <label>Qtd. Dias no Mês (para essa escala)</label>
+                <input type="number" id="cal-dias" placeholder="Ex: 16 para 3x3, 22 para 5x2">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-save" onclick="salvarCalendario()">Salvar</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-head"><div class="tbl-head-title">Dias registrados</div></div>
+            <table>
+              <thead><tr><th>Ano</th><th>Mês</th><th>Escala</th><th>Qtd. Dias</th><th></th></tr></thead>
+              <tbody id="tbody-cal"><tr><td colspan="5" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: TREINAMENTOS
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-treinamentos">
+        <div class="page-head">
+          <div class="page-title">Treinamentos — <span>Registro</span></div>
+          <div class="page-sub">Registre cada treinamento realizado ou programado por cliente.</div>
+        </div>
+
+        <div class="form-card">
+          <div class="sec-hd"><div class="sec-title">Novo Treinamento</div></div>
+          <div class="form-grid col3">
+            <div class="field">
+              <label>Mês</label>
+              <select id="tre-mes">
+                <option value="">Selecione...</option>
+                <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ano</label>
+              <input type="number" id="tre-ano" placeholder="2025" min="2024" max="2030">
+            </div>
+            <div class="field">
+              <label>Data do Treinamento</label>
+              <input type="date" id="tre-data">
+            </div>
+            <div class="field">
+              <label>Departamento / Cliente</label>
+              <select id="tre-departamento"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <select id="tre-regional">
+                <option value="">Selecione...</option>
+                <option value="1">PE</option>
+                <option value="2">SP</option>
+                <option value="3">ADM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Coordenador</label>
+              <select id="tre-coord"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Analista(s) DH</label>
+              <input type="text" id="tre-analista" placeholder="Ex: Tereza / Vitória">
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select id="tre-status">
+                <option value="">Selecione...</option>
+                <option>Realizado</option>
+                <option>Não Realizado</option>
+                <option>Agendada</option>
+                <option>Cancelada</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Qtd. Participantes</label>
+              <input type="number" id="tre-participantes" placeholder="Ex: 15" min="0">
+            </div>
+            <div class="field">
+              <label>Tema</label>
+              <input type="text" id="tre-tema" placeholder="Ex: Pesquisa Organizacional, Janeiro Branco">
+            </div>
+            <div class="field full">
+              <label>Observação</label>
+              <textarea id="tre-obs" placeholder="Informações adicionais sobre o treinamento"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" id="btn-save-tre" onclick="salvarTreinamento()">Salvar Treinamento</button>
+            <button class="btn-clear" onclick="limparForm('tre')">Limpar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div class="tbl-head-title">Treinamentos registrados</div>
+            <div class="btn-group"><div class="tbl-count" id="tbl-tre-count">0 registros</div><button class="btn-export" onclick="exportarExcel('treinamentos')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar Excel</button><button class="btn-modelo" onclick="baixarModelo('treinamentos')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Baixar Modelo</button><button class="btn-import" onclick="abrirImport('treinamentos')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Planilha</button></div><input type="file" id="import-treinamentos" accept=".xlsx,.xls" onchange="importarPlanilha(this,'treinamentos')" style="display:none">
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Mês/Ano</th><th>Data</th><th>Depto/Cliente</th><th>Analista</th><th>Tema</th><th>Part.</th><th>Status</th><th></th></tr></thead>
+              <tbody id="tbody-treinamentos"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: ADMISSÕES
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-admissoes">
+        <div class="page-head">
+          <div class="page-title">Admissões — <span>Registro</span></div>
+          <div class="page-sub">Registre entradas de colaboradores no período.</div>
+        </div>
+
+        <div class="form-card">
+          <div class="sec-hd"><div class="sec-title">Nova Admissão</div></div>
+          <div class="form-grid col3">
+            <div class="field">
+              <label>Mês</label>
+              <select id="adm-mes">
+                <option value="">Selecione...</option>
+                <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ano</label>
+              <input type="number" id="adm-ano" placeholder="2025" min="2024" max="2030">
+            </div>
+            <div class="field">
+              <label>Matrícula</label>
+              <input type="text" id="adm-matricula" placeholder="Ex: 251832">
+            </div>
+            <div class="field">
+              <label>Nome</label>
+              <input type="text" id="adm-nome" placeholder="Nome completo">
+            </div>
+            <div class="field">
+              <label>Data de Admissão</label>
+              <input type="date" id="adm-data">
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <select id="adm-regional">
+                <option value="">Selecione...</option>
+                <option value="1">PE</option>
+                <option value="2">SP</option>
+                <option value="3">ADM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Coordenador</label>
+              <select id="adm-coord"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Cargo</label>
+              <input type="text" id="adm-cargo" placeholder="Ex: AUXILIAR DE OPERAÇÃO">
+            </div>
+            <div class="field">
+              <label>Departamento / Contrato</label>
+              <select id="adm-contrato"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Motivo de Admissão</label>
+              <select id="adm-tipo">
+                <option value="">Selecione...</option>
+                <option>SUBSTITUIÇÃO</option>
+                <option>FERISTA</option>
+                <option>CONTRATO NOVO</option>
+                <option>AUMENTO DE QUADRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Escala</label>
+              <select id="adm-escala"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Matrícula — Colaborador Substituído</label>
+              <input type="text" id="adm-subst" placeholder="Deixe vazio se não for substituição">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" id="btn-save-adm" onclick="salvarAdmissao()">Salvar Admissão</button>
+            <button class="btn-clear" onclick="limparForm('adm')">Limpar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div class="tbl-head-title">Admissões registradas</div>
+            <div class="tbl-count" id="tbl-adm-count">0 registros</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Mês/Ano</th><th>Matrícula</th><th>Nome</th><th>Admissão</th><th>Regional</th><th>Contrato</th><th>Tipo</th><th></th></tr></thead>
+              <tbody id="tbody-admissoes"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: DESLIGAMENTOS
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-desligamentos">
+        <div class="page-head">
+          <div class="page-title">Desligamentos — <span>Registro</span></div>
+          <div class="page-sub">Registre saídas de colaboradores no período.</div>
+        </div>
+
+        <div class="form-card">
+          <div class="sec-hd"><div class="sec-title">Novo Desligamento</div></div>
+          <div class="form-grid col3">
+            <div class="field">
+              <label>Mês</label>
+              <select id="des-mes">
+                <option value="">Selecione...</option>
+                <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option>
+                <option>ABRIL</option><option>MAIO</option><option>JUNHO</option>
+                <option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option>
+                <option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ano</label>
+              <input type="number" id="des-ano" placeholder="2025" min="2024" max="2030">
+            </div>
+            <div class="field">
+              <label>Matrícula</label>
+              <input type="text" id="des-matricula" placeholder="Ex: 241758">
+            </div>
+            <div class="field">
+              <label>Nome do Colaborador</label>
+              <input type="text" id="des-nome" placeholder="Nome completo">
+            </div>
+            <div class="field">
+              <label>Data de Demissão</label>
+              <input type="date" id="des-data">
+            </div>
+            <div class="field">
+              <label>Data de Admissão</label>
+              <input type="date" id="des-admissao">
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <select id="des-regional">
+                <option value="">Selecione...</option>
+                <option value="1">PE</option>
+                <option value="2">SP</option>
+                <option value="3">ADM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Coordenador</label>
+              <select id="des-coord"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Departamento / Contrato</label>
+              <select id="des-contrato"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Motivo de Demissão</label>
+              <select id="des-tipo">
+                <option value="">Selecione...</option>
+                <option>PEDIDO</option>
+                <option>DESLIGADO</option>
+                <option>REDUÇÃO DE QUADRO</option>
+                <option>ABANDONO</option>
+                <option>FIM DE CONTRATO</option>
+                <option>DEMISSÃO NA JUSTA CAUSA</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Observação</label>
+              <textarea id="des-motivo" placeholder="Descreva o motivo do desligamento"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" id="btn-save-des" onclick="salvarDesligamento()">Salvar Desligamento</button>
+            <button class="btn-clear" onclick="limparForm('des')">Limpar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div class="tbl-head-title">Desligamentos registrados</div>
+            <div class="tbl-count" id="tbl-des-count">0 registros</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Mês/Ano</th><th>Matrícula</th><th>Colaborador</th><th>Demissão</th><th>Regional</th><th>Tipo</th><th>Substituído?</th><th></th></tr></thead>
+              <tbody id="tbody-desligamentos"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: COLABORADORES
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-colaboradores">
+        <div class="page-head">
+          <div class="page-title">Colaboradores — <span>Cadastro</span></div>
+          <div class="page-sub">Cadastre novos colaboradores ou consulte os ativos.</div>
+        </div>
+
+        <div class="form-card">
+          <div class="sec-hd"><div class="sec-title">Novo Colaborador</div></div>
+          <div class="form-grid col3">
+            <div class="field">
+              <label>Matrícula</label>
+              <input type="text" id="col-matricula" placeholder="Ex: 251832">
+            </div>
+            <div class="field">
+              <label>Nome Completo</label>
+              <input type="text" id="col-nome" placeholder="Nome completo">
+            </div>
+            <div class="field">
+              <label>CPF</label>
+              <input type="text" id="col-cpf" placeholder="000.000.000-00">
+            </div>
+            <div class="field">
+              <label>Cargo</label>
+              <input type="text" id="col-cargo" placeholder="Ex: AUXILIAR DE OPERAÇÃO">
+            </div>
+            <div class="field">
+              <label>Departamento / Contrato</label>
+              <select id="col-depto"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Estado do Departamento</label>
+              <input type="text" id="col-estado-depto" placeholder="Ex: PE, SP, CE...">
+            </div>
+            <div class="field">
+              <label>Regional</label>
+              <select id="col-regional">
+                <option value="">Selecione...</option>
+                <option value="1">PE</option>
+                <option value="2">SP</option>
+                <option value="3">ADM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Coordenador</label>
+              <select id="col-coord"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Escala</label>
+              <select id="col-escala"><option value="">Selecione...</option></select>
+            </div>
+            <div class="field">
+              <label>Data de Admissão</label>
+              <input type="date" id="col-admissao">
+            </div>
+            <div class="field">
+              <label>Data de Desligamento</label>
+              <input type="date" id="col-desligamento">
+            </div>
+            <div class="field">
+              <label>Situação</label>
+              <select id="col-situacao">
+                <option value="ATIVO">ATIVO</option>
+                <option value="DESLIGADO">DESLIGADO</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-save" id="btn-save-col" onclick="salvarColaborador()">Salvar Colaborador</button>
+            <button class="btn-clear" onclick="limparForm('col')">Limpar</button>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-head">
+            <div class="tbl-head-title">Colaboradores cadastrados</div>
+            <div class="btn-group"><div class="tbl-count" id="tbl-col-count">0 registros</div><button class="btn-export" onclick="exportarExcel('colaboradores')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar Excel</button><button class="btn-modelo" onclick="baixarModelo('colaboradores')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Baixar Modelo</button><button class="btn-import" onclick="abrirImport('colaboradores')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar Planilha</button></div><input type="file" id="import-colaboradores" accept=".xlsx,.xls" onchange="importarPlanilha(this,'colaboradores')" style="display:none">
+          </div>
+          <div style="padding:12px 22px;border-bottom:1px solid var(--navy-border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="col-busca" placeholder="Buscar por matrícula ou nome..." oninput="filtrarColaboradores()" style="flex:1;min-width:200px;background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:12px;font-family:'Poppins',sans-serif;outline:none">
+            <div class="tabs" style="margin:0">
+              <button class="tab ativo" id="filtro-todos"      onclick="setFiltroSituacao('TODOS')"     >Todos</button>
+              <button class="tab"       id="filtro-ativo"      onclick="setFiltroSituacao('ATIVO')"     >Ativos</button>
+              <button class="tab"       id="filtro-desligado"  onclick="setFiltroSituacao('DESLIGADO')" >Desligados</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Matrícula</th><th>Nome</th><th>Cargo</th><th>Contrato</th><th>Regional</th><th>Escala</th><th>Situação</th><th></th></tr></thead>
+              <tbody id="tbody-colab"><tr><td colspan="8" class="tbl-empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
+           MÓDULO: METAS
+      ══════════════════════════════════════════ -->
+      <div class="module" id="mod-metas">
+        <div class="page-head">
+          <div class="page-title">Metas — <span>Configuração Mensal</span></div>
+          <div class="page-sub">Defina as metas de cada indicador por mês.</div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab ativo" onclick="tabMeta('hcp')">HCP</button>
+          <button class="tab" onclick="tabMeta('abs')">Absenteísmo</button>
+          <button class="tab" onclick="tabMeta('turn')">Turnover</button>
+          <button class="tab" onclick="tabMeta('tre')">Treinamento</button>
+        </div>
+
+        <div id="meta-hcp" class="form-card">
+          <div class="sec-hd"><div class="sec-title">Meta HCP — % Vagas no Prazo</div></div>
+          <div class="form-grid col3">
+            <div class="field"><label>Mês</label><select id="mhcp-mes"><option value="">Selecione...</option><option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option><option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option></select></div>
+            <div class="field"><label>Ano</label><input type="number" id="mhcp-ano" placeholder="2025" min="2024" max="2030"></div>
+            <div class="field"><label>Meta (ex: 0.90 = 90%)</label><input type="number" id="mhcp-meta" placeholder="0.90" step="0.01" min="0" max="1"></div>
+          </div>
+          <div class="form-actions"><button class="btn-save" onclick="salvarMeta('hcp')">Salvar Meta HCP</button></div>
+        </div>
+        <div id="meta-abs" class="form-card" style="display:none">
+          <div class="sec-hd"><div class="sec-title">Meta Absenteísmo — % Máximo</div></div>
+          <div class="form-grid col3">
+            <div class="field"><label>Mês</label><select id="mabs-mes"><option value="">Selecione...</option><option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option><option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option></select></div>
+            <div class="field"><label>Ano</label><input type="number" id="mabs-ano" placeholder="2025" min="2024" max="2030"></div>
+            <div class="field"><label>Meta (ex: 0.03 = 3%)</label><input type="number" id="mabs-meta" placeholder="0.03" step="0.001" min="0" max="1"></div>
+          </div>
+          <div class="form-actions"><button class="btn-save" onclick="salvarMeta('abs')">Salvar Meta Absenteísmo</button></div>
+        </div>
+        <div id="meta-turn" class="form-card" style="display:none">
+          <div class="sec-hd"><div class="sec-title">Meta Turnover — % Máximo</div></div>
+          <div class="form-grid col3">
+            <div class="field"><label>Mês</label><select id="mturn-mes"><option value="">Selecione...</option><option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option><option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option></select></div>
+            <div class="field"><label>Ano</label><input type="number" id="mturn-ano" placeholder="2025" min="2024" max="2030"></div>
+            <div class="field"><label>Meta (ex: 0.03 = 3%)</label><input type="number" id="mturn-meta" placeholder="0.03" step="0.001" min="0" max="1"></div>
+          </div>
+          <div class="form-actions"><button class="btn-save" onclick="salvarMeta('turn')">Salvar Meta Turnover</button></div>
+        </div>
+        <div id="meta-tre" class="form-card" style="display:none">
+          <div class="sec-hd"><div class="sec-title">Meta Treinamento</div></div>
+          <div class="form-grid col3">
+            <div class="field"><label>Mês</label><select id="mtre-mes"><option value="">Selecione...</option><option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option><option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option><option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option></select></div>
+            <div class="field"><label>Ano</label><input type="number" id="mtre-ano" placeholder="2025" min="2024" max="2030"></div>
+            <div class="field"><label>Qtd. Esperada</label><input type="number" id="mtre-qtd" placeholder="8" min="1"></div>
+            <div class="field"><label>Meta Alcance (ex: 0.90)</label><input type="number" id="mtre-meta" placeholder="0.90" step="0.01" min="0" max="1"></div>
+          </div>
+          <div class="form-actions"><button class="btn-save" onclick="salvarMeta('tre')">Salvar Meta Treinamento</button></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+var SB_URL  = 'https://rbahvyejqybajnufftio.supabase.co';
+var SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
+var SB_RNX  = 'https://jjpnztfpusgtkuolvxvl.supabase.co';
+var SB_RKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcG56dGZwdXNndGt1b2x2eHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMzgwOTksImV4cCI6MjA5MzkxNDA5OX0.2Jzr0FIr0_Vi4sncP8mLMDiMb6PvTLcuCw4F7jVklbc';
+
+var sbAuth = supabase.createClient(SB_URL, SB_KEY);
+var db     = supabase.createClient(SB_RNX, SB_RKEY);
+var usr = null;
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function toast(msg, tipo){ var el=document.getElementById('toast'); el.textContent=msg; el.className='show '+(tipo||''); clearTimeout(el._t); el._t=setTimeout(function(){el.className=''},3200); }
+function esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d){ if(!d)return '—'; var p=d.split('T')[0].split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function setBtnLoading(id,v){ var b=document.getElementById(id); if(b){b.disabled=v;b.textContent=v?'Salvando...':b.getAttribute('data-label')||b.textContent.replace('Salvando...','').trim()||'Salvar';} }
+
+// ── MÓDULOS ───────────────────────────────────────────────────────
+function abrirModulo(mod){
+  document.querySelectorAll('.module').forEach(function(m){m.classList.remove('ativo')});
+  document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('ativo')});
+  var el=document.getElementById('mod-'+mod); if(el)el.classList.add('ativo');
+  var sb=document.getElementById('sb-'+mod); if(sb)sb.classList.add('ativo');
+}
+
+function tabAbsentes(t){
+  document.getElementById('tab-absentes-falta').style.display=t==='falta'?'':'none';
+  document.getElementById('tab-absentes-calendario').style.display=t==='calendario'?'':'none';
+  document.querySelectorAll('#tabs-absentes .tab').forEach(function(b,i){b.classList.toggle('ativo',(t==='falta'&&i===0)||(t==='calendario'&&i===1));});
+}
+
+function tabMeta(t){
+  ['hcp','abs','turn','tre'].forEach(function(k){
+    document.getElementById('meta-'+k).style.display=k===t?'':'none';
+  });
+  document.querySelectorAll('#mod-metas .tabs .tab').forEach(function(b,i){
+    b.classList.toggle('ativo',['hcp','abs','turn','tre'][i]===t);
+  });
+}
+
+// ── POPULAR SELECTS DE REFERÊNCIA ─────────────────────────────────
+async function carregarRefs(){
+  // Coordenadores
+  var {data:coords} = await db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome');
+  var optsC=(coords||[]).map(function(c){return '<option value="'+c.id+'">'+esc(c.nome)+'</option>';}).join('');
+  ['hcp-coord','tre-coord','adm-coord','des-coord','col-coord','abs-coord'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.innerHTML='<option value="">Selecione...</option>'+optsC;
+  });
+  // Escalas
+  var {data:escalas} = await db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala');
+  var optsE=(escalas||[]).map(function(e){return '<option value="'+e.id+'">'+esc(e.codigo_escala)+'</option>';}).join('');
+  ['abs-escala','cal-escala','col-escala','adm-escala'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.innerHTML='<option value="">Selecione...</option>'+optsE;
+  });
+  // Regiões
+  var {data:regioes} = await db.from('regioes').select('id,sigla,descricao').eq('ativo',true).order('sigla');
+  var optsR=(regioes||[]).map(function(r){return '<option value="'+r.id+'">'+esc(r.sigla)+(r.descricao?' — '+esc(r.descricao):'')+'</option>';}).join('');
+  ['hcp-regional','tre-regional','adm-regional','des-regional','col-regional','abs-regional'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.innerHTML='<option value="">Selecione...</option>'+optsR;
+  });
+  // Departamentos
+  var {data:deptos} = await db.from('departamentos').select('id,nome_departamento,regional_id').order('nome_departamento');
+  var optsD=(deptos||[]).map(function(d){return '<option value="'+d.id+'" data-regional="'+d.regional_id+'">'+esc(d.nome_departamento)+'</option>';}).join('');
+  ['hcp-depto','tre-departamento','col-depto','adm-contrato','des-contrato'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.innerHTML='<option value="">Selecione...</option>'+optsD;
+  });
+  // CIDs
+  var {data:cids} = await db.from('cid').select('codigo,descricao').order('codigo');
+  var optsCI=(cids||[]).map(function(c){return '<option value="'+esc(c.codigo)+'">'+esc(c.codigo)+' — '+esc(c.descricao)+'</option>';}).join('');
+  var cidEl=document.getElementById('abs-cid'); if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+optsCI;
+}
+
+// ── TOGGLE CID ─────────────────────────────────────────────────────
+function toggleCid(){
+  var s=document.getElementById('abs-status').value;
+  var show=s==='JUSTIFICADA';
+  document.getElementById('abs-cid-field').style.display=show?'':'none';
+  document.getElementById('abs-cid-detalhe-field').style.display=show?'':'none';
+}
+
+// ── BUSCAR COLABORADOR ─────────────────────────────────────────────
+var _absBusca=null;
+async function buscarColabAbs(){
+  clearTimeout(_absBusca);
+  _absBusca=setTimeout(async function(){
+    var m=document.getElementById('abs-matricula').value.trim();
+    if(m.length<4){document.getElementById('abs-colab-info').style.display='none';return;}
+    var {data}=await db.from('colaboradores').select('nome,cargo,escala_id,regional_id,coordenador_id').eq('matricula',m).single();
+    if(data){
+      document.getElementById('abs-colab-nome').textContent=data.nome+' ';
+      document.getElementById('abs-colab-cargo').textContent='· '+data.cargo;
+      document.getElementById('abs-colab-info').style.display='';
+      // Preencher regional, coordenador e escala automaticamente
+      if(data.regional_id){var r=document.getElementById('abs-regional');if(r)r.value=data.regional_id;}
+      if(data.coordenador_id){var c=document.getElementById('abs-coord');if(c)c.value=data.coordenador_id;}
+      if(data.escala_id){var e=document.getElementById('abs-escala');if(e)e.value=data.escala_id;}
+    } else {
+      document.getElementById('abs-colab-info').style.display='none';
+    }
+  },400);
+}
+
+// ── LIMPAR FORM ─────────────────────────────────────────────────────
+function limparForm(prefix){
+  document.querySelectorAll('[id^="'+prefix+'-"]').forEach(function(el){
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA')el.value='';
+    if(el.tagName==='SELECT')el.selectedIndex=0;
+  });
+  var info=document.getElementById('abs-colab-info'); if(info)info.style.display='none';
+}
+
+// ── CONTADORES NA SIDEBAR ─────────────────────────────────────────
+async function atualizarContadores(){
+  var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();
+  var ano=new Date().getFullYear();
+  try{
+    var [h,a,t,adm,des,col]=await Promise.all([
+      db.from('hcp_vagas').select('id',{count:'exact'}).eq('periodo_ano',ano).eq('periodo_mes',mes),
+      db.from('faltas').select('id',{count:'exact'}).eq('ano',ano).eq('mes',mes),
+      db.from('treinamentos').select('id',{count:'exact'}).eq('ano',ano).eq('mes',mes),
+      db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','ATIVO').gte('data_admissao',ano+'-01-01'),
+      db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','DESLIGADO').gte('data_desligamento',ano+'-01-01'),
+      db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','ATIVO')
+    ]);
+    document.getElementById('cnt-hcp').textContent=h.count||0;
+    document.getElementById('cnt-absentes').textContent=a.count||0;
+    document.getElementById('cnt-treinamentos').textContent=t.count||0;
+    document.getElementById('cnt-admissoes').textContent=adm.count||0;
+    document.getElementById('cnt-desligamentos').textContent=des.count||0;
+    document.getElementById('cnt-colab').textContent=col.count||0;
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CARREGAR TABELAS
+// ══════════════════════════════════════════════════════════════════
+async function carregarHcp(){
+  var {data,error}=await db.from('hcp_vagas').select('*,departamento:departamento_id(nome_departamento),coordenador:coordenador_id(nome),regional:regional_id(sigla)').order('criado_em',{ascending:false}).limit(100);
+  document.getElementById('tbl-hcp-count').textContent=(data||[]).length+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-hcp').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-hcp').innerHTML=data.map(function(r){
+    return '<tr><td>'+esc(r.periodo_mes||'')+'/'+(r.periodo_ano||'')+'</td><td>'+esc(r.id_pve||'—')+'</td><td>'+esc(r.motivo||'—')+'</td><td>'+esc(r.tipo_vagas||'—')+'</td><td>'+esc(r.departamento?r.departamento.nome_departamento:'—')+'</td><td>'+esc(r.coordenador?r.coordenador.nome:'—')+'</td><td>'+esc(r.funcao||'—')+'</td><td><button class="btn-del" onclick="deletar(\'hcp_vagas\','+r.id+',carregarHcp)">🗑</button></td></tr>';
+  }).join('');
+}
+
+async function carregarFaltas(){
+  var {data,error}=await db.from('faltas').select('*,colaborador:matricula(nome)').order('criado_em',{ascending:false}).limit(100);
+  document.getElementById('tbl-abs-count').textContent=(data||[]).length+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-absentes').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-absentes').innerHTML=data.map(function(r){
+    var badge=r.status_falta==='JUSTIFICADA'?'badge-warn':r.status_falta==='INJUSTIFICADA'?'badge-red':'badge-gold';
+    return '<tr><td>'+esc(r.mes||'')+'/'+(r.ano||'')+'</td><td>'+esc(r.matricula)+'</td><td>'+esc(r.colaborador?r.colaborador.nome:'—')+'</td><td>'+fmtDate(r.data_inicio_falta)+'</td><td>'+fmtDate(r.data_final_falta)+'</td><td><span class="badge '+badge+'">'+esc(r.status_falta)+'</span></td><td>'+esc(r.cid||'—')+'</td><td><button class="btn-del" onclick="deletar(\'faltas\','+r.id+',carregarFaltas)">🗑</button></td></tr>';
+  }).join('');
+}
+
+async function carregarCalendario(){
+  var {data}=await db.from('calendario_dias_uteis').select('*,escala:escala_id(codigo_escala)').order('ano',{ascending:false}).order('mes').limit(60);
+  if(!data||!data.length){document.getElementById('tbody-cal').innerHTML='<tr><td colspan="5" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-cal').innerHTML=data.map(function(r){
+    return '<tr><td>'+r.ano+'</td><td>'+esc(r.mes)+'</td><td>'+esc(r.escala?r.escala.codigo_escala:'—')+'</td><td>'+r.qtd_dias+'</td><td><button class="btn-del" onclick="deletar(\'calendario_dias_uteis\','+r.id+',carregarCalendario)">🗑</button></td></tr>';
+  }).join('');
+}
+
+async function carregarTreinamentos(){
+  var {data,error}=await db.from('treinamentos').select('*,departamento:departamento_id(nome_departamento),coordenador:coordenador_id(nome)').order('criado_em',{ascending:false}).limit(100);
+  document.getElementById('tbl-tre-count').textContent=(data||[]).length+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-treinamentos').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-treinamentos').innerHTML=data.map(function(r){
+    var badge=r.status==='Realizado'?'badge-green':r.status==='Não Realizado'?'badge-red':'badge-warn';
+    return '<tr><td>'+esc(r.mes||'')+'/'+(r.ano||'')+'</td><td>'+fmtDate(r.data_treinamento)+'</td><td>'+esc(r.departamento?r.departamento.nome_departamento:'—')+'</td><td>'+esc(r.analista||'—')+'</td><td>'+esc(r.tema||'—')+'</td><td>'+esc(r.qtd_participantes||0)+'</td><td><span class="badge '+badge+'">'+esc(r.status)+'</span></td><td><button class="btn-del" onclick="deletar(\'treinamentos\','+r.id+',carregarTreinamentos)">🗑</button></td></tr>';
+  }).join('');
+}
+
+async function carregarAdmissoes(){
+  var {data,error}=await db.from('colaboradores').select('matricula,nome,cargo,departamento_id,departamento:departamento_id(nome_departamento),regional:regional_id(sigla),data_admissao,motivo_admissao,situacao').eq('situacao','ATIVO').order('data_admissao',{ascending:false}).limit(100);
+  document.getElementById('tbl-adm-count').textContent=(data||[]).length+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-admissoes').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-admissoes').innerHTML=data.map(function(r){
+    return '<tr><td>'+esc(r.data_admissao?r.data_admissao.substring(5,7)+'/'+r.data_admissao.substring(0,4):'—')+'</td><td>'+esc(r.matricula)+'</td><td>'+esc(r.nome||'—')+'</td><td>'+fmtDate(r.data_admissao)+'</td><td>'+esc(r.regional?r.regional.sigla:'—')+'</td><td>'+esc(r.departamento?r.departamento.nome_departamento:'—')+'</td><td><span class="badge badge-gold">'+esc(r.motivo_admissao||'—')+'</span></td><td><button class="btn-del" onclick="deletar(\'colaboradores\',\''+esc(r.matricula)+'\',carregarAdmissoes,true)">🗑</button></td></tr>';
+  }).join('');
+}
+
+async function carregarDesligamentos(){
+  var {data,error}=await db.from('colaboradores').select('matricula,nome,departamento:departamento_id(nome_departamento),regional:regional_id(sigla),data_desligamento,data_admissao,motivo_demissao,situacao').eq('situacao','DESLIGADO').order('data_desligamento',{ascending:false}).limit(100);
+  document.getElementById('tbl-des-count').textContent=(data||[]).length+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-desligamentos').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum registro.</td></tr>';return;}
+  document.getElementById('tbody-desligamentos').innerHTML=data.map(function(r){
+    return '<tr><td>'+esc(r.data_desligamento?r.data_desligamento.substring(5,7)+'/'+r.data_desligamento.substring(0,4):'—')+'</td><td>'+esc(r.matricula)+'</td><td>'+esc(r.nome||'—')+'</td><td>'+fmtDate(r.data_desligamento)+'</td><td>'+esc(r.regional?r.regional.sigla:'—')+'</td><td>'+esc(r.motivo_demissao||'—')+'</td><td>'+esc(r.departamento?r.departamento.nome_departamento:'—')+'</td><td><button class="btn-del" onclick="deletar(\'colaboradores\',\''+esc(r.matricula)+'\',carregarDesligamentos,true)">🗑</button></td></tr>';
+  }).join('');
+}
+
+var _colabCache = [];
+var _colabFiltroSituacao = 'TODOS';
+
+async function carregarColaboradores(){
+  var {data,error,count}=await db.from('colaboradores').select('matricula,nome,cargo,situacao,cpf,escala_id,coordenador_id,regional_id,departamento_id,data_admissao,data_desligamento,estado_departamento,motivo_admissao,motivo_demissao,departamento:departamento_id(nome_departamento),regional:regional_id(sigla),escala:escala_id(codigo_escala)',{count:'exact'}).order('nome').limit(1000);
+  document.getElementById('tbl-col-count').textContent=(count||0)+' registros';
+  if(error||!data||!data.length){document.getElementById('tbody-colab').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum colaborador.</td></tr>';return;}
+  _colabCache = data;
+  filtrarColaboradores();
+}
+
+function setFiltroSituacao(s){
+  _colabFiltroSituacao = s;
+  ['TODOS','ATIVO','DESLIGADO'].forEach(function(k){
+    var btn = document.getElementById('filtro-'+k.toLowerCase());
+    if(btn) btn.classList.toggle('ativo', k===s);
+  });
+  filtrarColaboradores();
+}
+
+function filtrarColaboradores(){
+  var busca = (document.getElementById('col-busca').value||'').toLowerCase().trim();
+  var dados = _colabCache.filter(function(r){
+    if(_colabFiltroSituacao !== 'TODOS' && r.situacao !== _colabFiltroSituacao) return false;
+    if(busca){
+      var mat  = (r.matricula||'').toLowerCase();
+      var nome = (r.nome||'').toLowerCase();
+      if(!mat.includes(busca) && !nome.includes(busca)) return false;
+    }
+    return true;
+  });
+  document.getElementById('tbl-col-count').textContent = dados.length + ' registros';
+  if(!dados.length){document.getElementById('tbody-colab').innerHTML='<tr><td colspan="8" class="tbl-empty">Nenhum colaborador encontrado.</td></tr>';return;}
+  document.getElementById('tbody-colab').innerHTML=dados.map(function(r){
+    var depto = r.departamento ? r.departamento.nome_departamento : '—';
+    var reg   = r.regional     ? r.regional.sigla                 : '—';
+    var esc   = r.escala       ? r.escala.codigo_escala           : '—';
+    var badge = r.situacao==='ATIVO'
+      ? '<span class="badge badge-green">ATIVO</span>'
+      : '<span class="badge badge-red">DESLIGADO</span>';
+    return '<tr style="cursor:pointer" onclick="editarColaborador(\''+esc_js(r.matricula)+'\')" title="Clique para editar">'
+      +'<td>'+esc(r.matricula)+'</td>'
+      +'<td>'+esc(r.nome)+'</td>'
+      +'<td>'+esc(r.cargo||'—')+'</td>'
+      +'<td>'+esc(depto)+'</td>'
+      +'<td>'+esc(reg)+'</td>'
+      +'<td>'+esc(esc)+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td><button class="btn-del" onclick="event.stopPropagation();deletar(\'colaboradores\',\''+esc_js(r.matricula)+'\',carregarColaboradores,true)">🗑</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function esc_js(s){ return String(s||'').replace(/'/g,"\\'"); }
+
+function editarColaborador(matricula){
+  var r = _colabCache.find(function(c){ return c.matricula === matricula; });
+  if(!r) return;
+  // Rolar até o topo do formulário
+  document.getElementById('mod-colaboradores').scrollIntoView({behavior:'smooth'});
+  // Preencher campos
+  document.getElementById('col-matricula').value   = r.matricula   || '';
+  document.getElementById('col-nome').value        = r.nome        || '';
+  document.getElementById('col-cpf').value         = r.cpf         || '';
+  document.getElementById('col-cargo').value       = r.cargo       || '';
+  document.getElementById('col-estado-depto').value= r.estado_departamento || '';
+  document.getElementById('col-admissao').value    = r.data_admissao    || '';
+  document.getElementById('col-desligamento').value= r.data_desligamento || '';
+  document.getElementById('col-situacao').value    = r.situacao    || 'ATIVO';
+  if(r.regional_id)    document.getElementById('col-regional').value    = r.regional_id;
+  if(r.coordenador_id) document.getElementById('col-coord').value       = r.coordenador_id;
+  if(r.escala_id)      document.getElementById('col-escala').value      = r.escala_id;
+  if(r.departamento_id)document.getElementById('col-depto').value       = r.departamento_id;
+  // Destaque no botão salvar
+  var btn = document.getElementById('btn-save-col');
+  btn.textContent = 'Atualizar Colaborador';
+  btn.setAttribute('data-label','Atualizar Colaborador');
+  toast('Colaborador carregado para edição. Altere os campos e clique em Atualizar.','');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SALVAR
+// ══════════════════════════════════════════════════════════════════
+async function salvarHcp(){
+  var mes=document.getElementById('hcp-mes').value;
+  var ano=parseInt(document.getElementById('hcp-ano').value);
+  var motivo=document.getElementById('hcp-motivo').value;
+  if(!mes||!ano||!motivo){toast('Preencha Mês, Ano e Motivo.','err');return;}
+  setBtnLoading('btn-save-hcp',true);
+  var inc=document.getElementById('hcp-incluido').value;
+  var lib=document.getElementById('hcp-liberado').value;
+  var nec=document.getElementById('hcp-necessidade').value;
+  var ass=document.getElementById('hcp-assinatura').value;
+  var ini=document.getElementById('hcp-inicio').value;
+  var diasLib=null; if(inc&&lib){diasLib=(new Date(lib)-new Date(inc))/(1000*60*60*24);}
+  var payload={
+    periodo_mes:mes,periodo_ano:ano,
+    id_pve:document.getElementById('hcp-idpve').value||null,
+    incluido_em:inc||null,liberado_em:lib||null,
+    data_necessidade:nec||null,data_assinatura_contrato:ass||null,data_inicio_contrato:ini||null,
+    motivo:motivo,
+    tipo_vagas:document.getElementById('hcp-tipovaga').value||null,
+    departamento_id:parseInt(document.getElementById('hcp-depto').value)||null,
+    regional_id:parseInt(document.getElementById('hcp-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('hcp-coord').value)||null,
+    funcao:document.getElementById('hcp-funcao').value||null,
+    colaborador_substituido_id:document.getElementById('hcp-subst').value||null,
+    colaborador_contratado_id:document.getElementById('hcp-contrat').value||null,
+    observacao:document.getElementById('hcp-obs').value||null
+  };
+  var {error}=await db.from('hcp_vagas').insert(payload);
+  setBtnLoading('btn-save-hcp',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Vaga salva!','ok');limparForm('hcp');await carregarHcp();await atualizarContadores();}
+}
+
+async function salvarFalta(){
+  var mes=document.getElementById('abs-mes').value;
+  var ano=parseInt(document.getElementById('abs-ano').value);
+  var mat=document.getElementById('abs-matricula').value.trim();
+  var status=document.getElementById('abs-status').value;
+  if(!mes||!ano||!mat||!status){toast('Preencha Mês, Ano, Matrícula e Status.','err');return;}
+  setBtnLoading('btn-save-abs',true);
+  var payload={
+    mes:mes,ano:ano,matricula:mat,status_falta:status,
+    data_inicio_falta:document.getElementById('abs-inicio').value||null,
+    data_final_falta:document.getElementById('abs-fim').value||null,
+    regional_id:parseInt(document.getElementById('abs-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('abs-coord').value)||null,
+    cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid').value||null):null,
+    detalhe_cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid-detalhe').value||null):null,
+    escala_id:parseInt(document.getElementById('abs-escala').value)||null
+  };
+  var {error}=await db.from('faltas').insert(payload);
+  setBtnLoading('btn-save-abs',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Falta salva!','ok');limparForm('abs');await carregarFaltas();await atualizarContadores();}
+}
+
+async function salvarCalendario(){
+  var mes=document.getElementById('cal-mes').value;
+  var ano=parseInt(document.getElementById('cal-ano').value);
+  var esc=parseInt(document.getElementById('cal-escala').value);
+  var dias=parseInt(document.getElementById('cal-dias').value);
+  if(!mes||!ano||!esc||!dias){toast('Preencha todos os campos.','err');return;}
+  var {error}=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:esc,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Salvo!','ok');document.getElementById('cal-mes').value='';document.getElementById('cal-ano').value='';document.getElementById('cal-escala').value='';document.getElementById('cal-dias').value='';await carregarCalendario();}
+}
+
+async function salvarTreinamento(){
+  var mes=document.getElementById('tre-mes').value;
+  var ano=parseInt(document.getElementById('tre-ano').value);
+  var status=document.getElementById('tre-status').value;
+  if(!mes||!ano||!status){toast('Preencha Mês, Ano e Status.','err');return;}
+  setBtnLoading('btn-save-tre',true);
+  var payload={
+    mes:mes,ano:ano,status:status,
+    data_treinamento:document.getElementById('tre-data').value||null,
+    departamento_id:parseInt(document.getElementById('tre-departamento').value)||null,
+    regional_id:parseInt(document.getElementById('tre-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('tre-coord').value)||null,
+    analista:document.getElementById('tre-analista').value||null,
+    qtd_participantes:parseInt(document.getElementById('tre-participantes').value)||0,
+    tema:document.getElementById('tre-tema').value||null,
+    observacao:document.getElementById('tre-obs').value||null
+  };
+  var {error}=await db.from('treinamentos').insert(payload);
+  setBtnLoading('btn-save-tre',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Treinamento salvo!','ok');limparForm('tre');await carregarTreinamentos();await atualizarContadores();}
+}
+
+async function salvarAdmissao(){
+  var mes=document.getElementById('adm-mes').value;
+  var ano=parseInt(document.getElementById('adm-ano').value);
+  var mat=document.getElementById('adm-matricula').value.trim();
+  var nome=document.getElementById('adm-nome').value.trim();
+  if(!mes||!ano||!mat||!nome){toast('Preencha Mês, Ano, Matrícula e Nome.','err');return;}
+  setBtnLoading('btn-save-adm',true);
+  var deptoId=parseInt(document.getElementById('adm-contrato').value)||null;
+  var payload={
+    matricula:mat,
+    nome:nome,
+    cargo:document.getElementById('adm-cargo').value||null,
+    departamento_id:deptoId,
+    data_admissao:document.getElementById('adm-data').value||null,
+    regional_id:parseInt(document.getElementById('adm-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('adm-coord').value)||null,
+    escala_id:parseInt(document.getElementById('adm-escala').value)||null,
+    motivo_admissao:document.getElementById('adm-tipo').value||null,
+    situacao:'ATIVO'
+  };
+  var {error}=await db.from('colaboradores').upsert(payload,{onConflict:'matricula'});
+  setBtnLoading('btn-save-adm',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Admissão salva!','ok');limparForm('adm');await carregarAdmissoes();await atualizarContadores();}
+}
+
+async function salvarDesligamento(){
+  var mes=document.getElementById('des-mes').value;
+  var ano=parseInt(document.getElementById('des-ano').value);
+  var mat=document.getElementById('des-matricula').value.trim();
+  if(!mes||!ano||!mat){toast('Preencha Mês, Ano e Matrícula.','err');return;}
+  setBtnLoading('btn-save-des',true);
+  var payload={
+    matricula:mat,
+    nome:document.getElementById('des-nome').value||null,
+    data_desligamento:document.getElementById('des-data').value||null,
+    data_admissao:document.getElementById('des-admissao').value||null,
+    regional_id:parseInt(document.getElementById('des-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('des-coord').value)||null,
+    departamento_id:parseInt(document.getElementById('des-contrato').value)||null,
+    motivo_demissao:document.getElementById('des-tipo').value||null,
+    situacao:'DESLIGADO'
+  };
+  var {error}=await db.from('colaboradores').upsert(payload,{onConflict:'matricula'});
+  setBtnLoading('btn-save-des',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Desligamento salvo!','ok');limparForm('des');await carregarDesligamentos();await atualizarContadores();}
+}
+
+async function salvarColaborador(){
+  var mat=document.getElementById('col-matricula').value.trim();
+  var nome=document.getElementById('col-nome').value.trim();
+  if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}
+  setBtnLoading('btn-save-col',true);
+  var payload={
+    matricula:mat,nome:nome,
+    cpf:document.getElementById('col-cpf').value||null,
+    cargo:document.getElementById('col-cargo').value||null,
+    departamento_id:parseInt(document.getElementById('col-depto').value)||null,
+    estado_departamento:document.getElementById('col-estado-depto').value||null,
+    regional_id:parseInt(document.getElementById('col-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('col-coord').value)||null,
+    escala_id:parseInt(document.getElementById('col-escala').value)||null,
+    data_admissao:document.getElementById('col-admissao').value||null,
+    data_desligamento:document.getElementById('col-desligamento').value||null,
+    situacao:document.getElementById('col-situacao').value||'ATIVO'
+  };
+  var {error}=await db.from('colaboradores').upsert(payload,{onConflict:'matricula'});
+  setBtnLoading('btn-save-col',false);
+  if(error){toast('Erro: '+error.message,'err');}
+  else{
+    toast('Colaborador salvo!','ok');
+    limparForm('col');
+    var btn=document.getElementById('btn-save-col');
+    btn.textContent='Salvar Colaborador';
+    btn.setAttribute('data-label','Salvar Colaborador');
+    await carregarColaboradores();
+    await atualizarContadores();
+  }
+}
+
+async function salvarMeta(tipo){
+  var meses={'hcp':'mhcp','abs':'mabs','turn':'mturn','tre':'mtre'};
+  var p=meses[tipo];
+  var mes=document.getElementById(p+'-mes').value;
+  var ano=parseInt(document.getElementById(p+'-ano').value);
+  if(!mes||!ano){toast('Preencha Mês e Ano.','err');return;}
+  var tabela={'hcp':'metas_hcp','abs':'metas_absenteismo','turn':'metas_turnover','tre':'metas_treinamento'}[tipo];
+  var payload={ano:ano,mes:mes};
+  if(tipo==='tre'){
+    payload.qtd_treinamentos_esperados=parseInt(document.getElementById('mtre-qtd').value)||8;
+    payload.meta_alcance=parseFloat(document.getElementById('mtre-meta').value)||0.9;
+  } else {
+    payload.meta=parseFloat(document.getElementById(p+'-meta').value)||0;
+  }
+  var {error}=await db.from(tabela).upsert(payload,{onConflict:'ano,mes'});
+  if(error){toast('Erro: '+error.message,'err');}
+  else{toast('Meta salva!','ok');}
+}
+
+// ── DELETAR ────────────────────────────────────────────────────────
+async function deletar(tabela,id,callback,isText){
+  if(!confirm('Excluir este registro?'))return;
+  var query=db.from(tabela).delete();
+  var {error}=await (isText?query.eq('matricula',id):query.eq('id',id));
+  if(error){toast('Erro ao excluir.','err');}
+  else{toast('Excluído.','ok');callback();}
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORTAR EXCEL
+// ══════════════════════════════════════════════════════════════════
+var _dadosExport = {
+  hcp: [], absentes: [], treinamentos: [], colaboradores: []
+};
+
+async function exportarExcel(modulo) {
+  toast('Gerando planilha...', '');
+  try {
+    var dados = [];
+    var nomeArquivo = '';
+    var hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+
+    if (modulo === 'hcp') {
+      var {data} = await db.from('hcp_vagas').select('*').order('periodo_ano',{ascending:false}).order('periodo_mes');
+      nomeArquivo = 'HCP_Vagas_' + hoje + '.xlsx';
+      dados = (data||[]).map(function(r){ return {
+        'Mês':            r.periodo_mes || '',
+        'Ano':            r.periodo_ano || '',
+        'ID PVE':         r.id_pve || '',
+        'Incluído em':    r.incluido_em || '',
+        'Liberado em':    r.liberado_em || '',
+        'Data Necessidade': r.data_necessidade || '',
+        'Data Assinatura':  r.data_assinatura_contrato || '',
+        'Data Início':    r.data_inicio_contrato || '',
+        'Motivo':         r.motivo || '',
+        'Tipo Vaga':      r.tipo_vagas || '',
+        'Departamento':   r.departamento || '',
+        'Função':         r.funcao || '',
+        'Observação':     r.observacao || ''
+      };});
+    }
+
+    else if (modulo === 'absentes') {
+      var {data} = await db.from('faltas').select('*,escala:escala_id(codigo)').order('ano',{ascending:false}).order('mes');
+      nomeArquivo = 'Absenteismo_' + hoje + '.xlsx';
+      dados = (data||[]).map(function(r){ return {
+        'Mês':              r.mes || '',
+        'Ano':              r.ano || '',
+        'Matrícula':        r.matricula || '',
+        'Data Início Falta':r.data_inicio_falta || '',
+        'Data Fim Falta':   r.data_final_falta || '',
+        'Qtd Dias Faltosos':r.qtd_dias_faltosos || '',
+        'Status Falta':     r.status_falta || '',
+        'CID':              r.cid || '',
+        'Detalhe CID':      r.detalhe_cid || '',
+        'Escala':           r.escala ? r.escala.codigo : ''
+      };});
+    }
+
+    else if (modulo === 'treinamentos') {
+      var {data} = await db.from('treinamentos').select('*').order('ano',{ascending:false}).order('mes');
+      nomeArquivo = 'Treinamentos_' + hoje + '.xlsx';
+      dados = (data||[]).map(function(r){ return {
+        'Mês':              r.mes || '',
+        'Ano':              r.ano || '',
+        'Data':             r.data_treinamento || '',
+        'Depto/Cliente':    r.observacao || '',
+        'Analista':         r.analista || '',
+        'Status':           r.status || '',
+        'Tema':             r.tema || '',
+        'Qtd Participantes':r.qtd_participantes || 0
+      };});
+    }
+
+    else if (modulo === 'colaboradores') {
+      var {data} = await db.from('colaboradores').select('*,escala:escala_id(codigo),coordenador:coordenador_id(nome),regional:regional_id(sigla)').order('nome');
+      nomeArquivo = 'Colaboradores_' + hoje + '.xlsx';
+      dados = (data||[]).map(function(r){ return {
+        'Matrícula':         r.matricula || '',
+        'Nome':              r.nome || '',
+        'CPF':               r.cpf || '',
+        'Cargo':             r.cargo || '',
+        'Departamento':      r.departamento || '',
+        'Estado Depto':      r.estado_departamento || '',
+        'Regional':          r.regional ? r.regional.sigla : '',
+        'Coordenador':       r.coordenador ? r.coordenador.nome : '',
+        'Escala':            r.escala ? r.escala.codigo : '',
+        'Data Admissão':     r.data_admissao || '',
+        'Data Desligamento': r.data_desligamento || '',
+        'Motivo Admissão':   r.motivo_admissao || '',
+        'Motivo Demissão':   r.motivo_demissao || '',
+        'Situação':          r.situacao || ''
+      };});
+    }
+
+    if (!dados.length) { toast('Nenhum dado para exportar.', 'err'); return; }
+
+    var ws   = XLSX.utils.json_to_sheet(dados);
+    var wb   = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+
+    // Ajustar largura das colunas automaticamente
+    var cols = Object.keys(dados[0]).map(function(k){
+      var max = k.length;
+      dados.forEach(function(row){ var v=String(row[k]||''); if(v.length>max)max=v.length; });
+      return { wch: Math.min(max + 2, 50) };
+    });
+    ws['!cols'] = cols;
+
+    XLSX.writeFile(wb, nomeArquivo);
+    toast('Planilha gerada!', 'ok');
+
+  } catch(e) {
+    console.error(e);
+    toast('Erro ao gerar planilha.', 'err');
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// BAIXAR MODELO (planilha vazia com cabeçalhos)
+// ══════════════════════════════════════════════════════════════════
+var _modelos = {
+  hcp: ['Mês','Ano','ID PVE','Incluído em (AAAA-MM-DD)','Liberado em (AAAA-MM-DD)','Data Necessidade (AAAA-MM-DD)','Data Assinatura (AAAA-MM-DD)','Data Início (AAAA-MM-DD)','Motivo','Departamento','Regional (1=PE 2=SP 3=ADM)','Coordenador ID','Função','Status (NO PRAZO / FORA DO PRAZO)','Setor Relacionado','Observação'],
+  absentes: ['Mês','Ano','Matrícula','Data Início Falta (AAAA-MM-DD)','Data Fim Falta (AAAA-MM-DD)','Qtd Dias Faltosos','Status (JUSTIFICADA / INJUSTIFICADA / DISCIPLINADA)','CID','Detalhe CID','Escala ID'],
+  treinamentos: ['Mês','Ano','Data (AAAA-MM-DD)','Cliente','Regional (PE / SP / ADM)','Coordenador','Analista','Status (Realizado / Não Realizado / Agendada / Cancelada)','Tema','Qtd Participantes','Observação'],
+  colaboradores: ['Matrícula','Nome Completo','Cargo','Departamento / Contrato','Estado do Departamento','Regional','Coordenador','Escala','Data Admissão','Data Desligamento','Situação']
+};
+
+var _nomesModelo = {
+  hcp: 'Modelo_HCP.xlsx',
+  absentes: 'Modelo_Absenteismo.xlsx',
+  treinamentos: 'Modelo_Treinamentos.xlsx',
+  colaboradores: 'Modelo_Colaboradores.xlsx'
+};
+
+function baixarModelo(modulo) {
+  var cols = _modelos[modulo];
+  if (!cols) return;
+  var obj = {};
+  cols.forEach(function(c){ obj[c] = ''; });
+  var ws = XLSX.utils.json_to_sheet([obj]);
+  // Estilizar cabeçalho — largura automática
+  ws['!cols'] = cols.map(function(c){ return { wch: Math.max(c.length + 2, 16) }; });
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+  XLSX.writeFile(wb, _nomesModelo[modulo]);
+  toast('Modelo baixado!', 'ok');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// IMPORTAR PLANILHA
+// ══════════════════════════════════════════════════════════════════
+function abrirImport(modulo) {
+  document.getElementById('import-' + modulo).click();
+}
+
+async function importarPlanilha(input, modulo) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  input.value = ''; // reset para permitir re-upload do mesmo arquivo
+
+  toast('Lendo planilha...', '');
+
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      var wb   = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      var ws   = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!rows.length) { toast('Planilha vazia.', 'err'); return; }
+
+      var payload = [];
+      var erros   = [];
+
+      if (modulo === 'hcp') {
+        rows.forEach(function(r, i) {
+          if (!r['Mês'] || !r['Ano']) { erros.push('Linha '+(i+2)+': Mês e Ano obrigatórios'); return; }
+          payload.push({
+            periodo_mes:              String(r['Mês']).toUpperCase(),
+            periodo_ano:              parseInt(r['Ano']) || null,
+            id_pve:                   r['ID PVE'] || null,
+            incluido_em:              r['Incluído em (AAAA-MM-DD)'] || null,
+            liberado_em:              r['Liberado em (AAAA-MM-DD)'] || null,
+            data_necessidade:         r['Data Necessidade (AAAA-MM-DD)'] || null,
+            data_assinatura_contrato: r['Data Assinatura (AAAA-MM-DD)'] || null,
+            data_inicio_contrato:     r['Data Início (AAAA-MM-DD)'] || null,
+            motivo:                   r['Motivo'] || null,
+            departamento:             r['Departamento'] || null,
+            regional_id:              parseInt(r['Regional (1=PE 2=SP 3=ADM)']) || null,
+            coordenador_id:           parseInt(r['Coordenador ID']) || null,
+            funcao:                   r['Função'] || null,
+            status_preenchimento:     r['Status (NO PRAZO / FORA DO PRAZO)'] || null,
+            setor_relacionado:        r['Setor Relacionado'] || null,
+            observacao:               r['Observação'] || null
+          });
+        });
+      }
+
+      else if (modulo === 'absentes') {
+        rows.forEach(function(r, i) {
+          if (!r['Mês'] || !r['Ano'] || !r['Matrícula']) { erros.push('Linha '+(i+2)+': Mês, Ano e Matrícula obrigatórios'); return; }
+          payload.push({
+            mes:                String(r['Mês']).toUpperCase(),
+            ano:                parseInt(r['Ano']) || null,
+            matricula:          String(r['Matrícula']),
+            data_inicio_falta:  r['Data Início Falta (AAAA-MM-DD)'] || null,
+            data_final_falta:   r['Data Fim Falta (AAAA-MM-DD)'] || null,
+            qtd_dias_faltosos:  parseInt(r['Qtd Dias Faltosos']) || null,
+            status_falta:       r['Status (JUSTIFICADA / INJUSTIFICADA / DISCIPLINADA)'] || null,
+            cid:                r['CID'] || null,
+            detalhe_cid:        r['Detalhe CID'] || null,
+            escala_id:          parseInt(r['Escala ID']) || null
+          });
+        });
+      }
+
+      else if (modulo === 'treinamentos') {
+        rows.forEach(function(r, i) {
+          if (!r['Mês'] || !r['Ano'] || !r['Cliente']) { erros.push('Linha '+(i+2)+': Mês, Ano e Cliente obrigatórios'); return; }
+          payload.push({
+            mes:              String(r['Mês']).toUpperCase(),
+            ano:              parseInt(r['Ano']) || null,
+            data_treinamento: r['Data (AAAA-MM-DD)'] || null,
+            cliente:          r['Cliente'] || '',
+            regional_id:      parseInt(r['Regional ID (1=PE 2=SP 3=ADM)']) || null,
+            coordenador_id:   parseInt(r['Coordenador ID']) || null,
+            analista:         r['Analista'] || null,
+            status:           r['Status (Realizado / Não Realizado / Agendada / Cancelada)'] || null,
+            tema:             r['Tema'] || null,
+            qtd_participantes:parseInt(r['Qtd Participantes']) || 0,
+            observacao:       r['Observação'] || null
+          });
+        });
+      }
+
+      else if (modulo === 'colaboradores') {
+        // Mapas de nome → ID buscados do banco
+        var {data: coordsDb} = await db.from('coordenadores').select('id,nome');
+        var {data: escalasDb} = await db.from('escalas').select('id,codigo');
+        var {data: regioesDb} = await db.from('regioes').select('id,sigla');
+
+        var mapCoord  = {}; (coordsDb||[]).forEach(function(c){ mapCoord[c.nome.toUpperCase().trim()] = c.id; });
+        var mapEscala = {}; (escalasDb||[]).forEach(function(e){ mapEscala[e.codigo.toUpperCase().trim()] = e.id; });
+        var mapRegiao = {}; (regioesDb||[]).forEach(function(r){ mapRegiao[r.sigla.toUpperCase().trim()] = r.id; });
+
+        rows.forEach(function(r, i) {
+          var mat  = String(r['Matrícula']||'').trim();
+          var nome = String(r['Nome Completo']||r['Nome']||'').trim();
+          if (!mat || !nome) { erros.push('Linha '+(i+2)+': Matrícula e Nome obrigatórios'); return; }
+
+          var coordNome  = String(r['Coordenador']||'').toUpperCase().trim();
+          var escalaCod  = String(r['Escala']||'').toUpperCase().trim();
+          var regSigla   = String(r['Regional']||'').toUpperCase().trim();
+
+          // Converter data de DD/MM/AAAA → AAAA-MM-DD se necessário
+          function parseDt(v) {
+            if (!v || v === '0' || v == 0) return null;
+            var s = String(v).trim();
+            if (!s) return null;
+            // já no formato ISO
+            if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+            // formato DD/MM/AAAA
+            var p = s.split('/');
+            if (p.length === 3) return p[2]+'-'+p[1]+'-'+p[0];
+            // número serial do Excel (dias desde 1900-01-01)
+            var n = parseInt(s);
+            if (!isNaN(n) && n > 1000) {
+              var d = new Date((n - 25569) * 86400 * 1000);
+              return d.toISOString().split('T')[0];
+            }
+            return null;
+          }
+
+          payload.push({
+            matricula:         mat,
+            nome:              nome,
+            cargo:             String(r['Cargo']||'').trim() || null,
+            departamento:      String(r['Departamento / Contrato']||'').trim() || null,
+            estado_departamento: String(r['Estado do Departamento']||'').toUpperCase().trim() || null,
+            regional_id:       mapRegiao[regSigla] || null,
+            coordenador_id:    mapCoord[coordNome] || null,
+            escala_id:         mapEscala[escalaCod] || null,
+            data_admissao:     parseDt(r['Data Admissão']),
+            data_desligamento: parseDt(r['Data Desligamento']),
+            situacao:          String(r['Situação']||'ATIVO').toUpperCase().trim() || 'ATIVO'
+          });
+        });
+      }
+
+      if (erros.length) {
+        toast('Erros: ' + erros.slice(0,3).join(' | ') + (erros.length>3?' e mais '+(erros.length-3)+'...':''), 'err');
+        return;
+      }
+      if (!payload.length) { toast('Nenhum dado válido encontrado.', 'err'); return; }
+
+      toast('Importando ' + payload.length + ' registros...', '');
+
+      // Inserir em lotes de 50
+      var tabela = {hcp:'hcp_vagas', absentes:'faltas', treinamentos:'treinamentos', colaboradores:'colaboradores'}[modulo];
+      var upsert = modulo === 'colaboradores';
+      var total  = 0;
+      var lote   = 50;
+
+      for (var i = 0; i < payload.length; i += lote) {
+        var batch = payload.slice(i, i + lote);
+        var res;
+        if (upsert) {
+          res = await db.from(tabela).upsert(batch, { onConflict: 'matricula' });
+        } else {
+          res = await db.from(tabela).insert(batch);
+        }
+        if (res.error) { toast('Erro no lote ' + (i/lote+1) + ': ' + res.error.message, 'err'); return; }
+        total += batch.length;
+      }
+
+      toast(total + ' registros importados com sucesso!', 'ok');
+
+      // Recarregar tabela correspondente
+      var reloaders = {
+        hcp: carregarHcp,
+        absentes: carregarFaltas,
+        treinamentos: carregarTreinamentos,
+        colaboradores: carregarColaboradores
+      };
+      if (reloaders[modulo]) await reloaders[modulo]();
+      await atualizarContadores();
+
+    } catch(err) {
+      console.error(err);
+      toast('Erro ao processar planilha: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('load', async function(){
+  try{
+    var {data:{session}}=await sbAuth.auth.getSession();
+    if(!session){window.location.href='./login.html';return;}
+    usr={email:session.user.email};
+    document.getElementById('topEmail').textContent=usr.email;
+    document.getElementById('tela-loading').style.display='none';
+    document.getElementById('app').style.display='flex';
+    // Pré-preencher ano e mês atual
+    var agora=new Date();
+    var mesAtual=agora.toLocaleString('pt-BR',{month:'long'}).toUpperCase();
+    var anoAtual=agora.getFullYear();
+    ['hcp-ano','abs-ano','tre-ano','adm-ano','des-ano','cal-ano','mhcp-ano','mabs-ano','mturn-ano','mtre-ano'].forEach(function(id){
+      var el=document.getElementById(id); if(el)el.value=anoAtual;
+    });
+    ['hcp-mes','abs-mes','tre-mes','adm-mes','des-mes','cal-mes','mhcp-mes','mabs-mes','mturn-mes','mtre-mes'].forEach(function(id){
+      var el=document.getElementById(id); if(!el)return;
+      Array.from(el.options).forEach(function(o){if(o.value===mesAtual)o.selected=true;});
+    });
+    await carregarRefs();
+    await Promise.all([
+      carregarHcp(),carregarFaltas(),carregarCalendario(),
+      carregarTreinamentos(),carregarAdmissoes(),
+      carregarDesligamentos(),carregarColaboradores()
+    ]);
+    await atualizarContadores();
+  }catch(e){
+    console.error(e);
+    window.location.href='./login.html';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grupo Renaux | Redefinir Senha</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+    :root {
+      --bg-dark:     #0a0e1a;
+      --border:      #1e2d45;
+      --accent:      #f5a623;
+      --accent-dark: #c47d0e;
+      --text:        #e8eaf0;
+      --text-muted:  #6b7a99;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg-dark);
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,166,35,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,166,35,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .card {
+      background: rgba(17,24,39,0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,166,35,0.07);
+      animation: slideUp 0.5s ease;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .logo-area { text-align:center; margin-bottom:32px; }
+    .logo-icon {
+      width:60px; height:60px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      border-radius:14px;
+      display:inline-flex; align-items:center; justify-content:center;
+      margin-bottom:16px;
+      box-shadow: 0 8px 24px rgba(245,166,35,0.3);
+    }
+    .logo-icon svg { width:32px; height:32px; fill:#fff; }
+    .logo-area h1 { font-size:26px; font-weight:700; color:var(--text); letter-spacing:-0.5px; }
+    .logo-area p  { font-size:13px; color:var(--text-muted); margin-top:4px; }
+    .field { margin-bottom:18px; }
+    .field label {
+      display:block; font-size:11px; font-weight:600;
+      letter-spacing:1px; text-transform:uppercase;
+      color:var(--text-muted); margin-bottom:8px;
+    }
+    .input-wrap { position:relative; }
+    input[type="password"], input[type="text"] {
+      width:100%;
+      background: rgba(26,34,53,0.85);
+      border: 1px solid var(--border);
+      border-radius:10px;
+      padding:13px 16px;
+      font-size:14px; font-family:'Poppins',sans-serif;
+      color:var(--text); outline:none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(245,166,35,0.12); }
+    input::placeholder { color:var(--text-muted); }
+    .toggle-pwd {
+      position:absolute; right:14px; top:50%;
+      transform:translateY(-50%);
+      background:none; border:none;
+      cursor:pointer; color:var(--text-muted);
+      display:flex; align-items:center;
+      padding:0; transition:color .2s;
+    }
+    .toggle-pwd:hover { color:var(--accent); }
+    .btn-login {
+      width:100%; padding:14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color:#fff; font-family:'Poppins',sans-serif;
+      font-size:15px; font-weight:600;
+      border:none; border-radius:10px;
+      cursor:pointer; margin-top:8px;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 16px rgba(245,166,35,0.35);
+    }
+    .btn-login:hover { opacity:.92; transform:translateY(-1px); }
+    .btn-login:active { transform:translateY(0); }
+    .btn-login:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .msg-box { border-radius:8px; font-size:13px; padding:10px 14px; margin-bottom:14px; display:none; }
+    .msg-error   { background:rgba(224,85,85,0.12); border:1px solid rgba(224,85,85,0.3); color:#f08080; }
+    .msg-success { background:rgba(52,201,126,0.12); border:1px solid rgba(52,201,126,0.3); color:#5ddb9a; }
+    .footer-brand { text-align:center; margin-top:28px; font-size:12px; color:var(--text-muted); }
+    .footer-brand strong { color:var(--accent); }
+    .strength-bar { height:4px; border-radius:4px; margin-top:8px; background:var(--border); overflow:hidden; }
+    .strength-fill { height:100%; border-radius:4px; width:0%; transition:width .3s, background .3s; }
+    .strength-label { font-size:11px; color:var(--text-muted); margin-top:4px; }
+    .spinner {
+      width:36px; height:36px;
+      border:3px solid rgba(245,166,35,0.2);
+      border-top-color:var(--accent);
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+      margin:0 auto 16px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #cardInvalido { display:none; text-align:center; }
+    #cardInvalido .icon-warning { font-size:48px; margin-bottom:16px; }
+    #cardInvalido p { color:var(--text-muted); font-size:14px; margin-bottom:24px; }
+    #cardInvalido a { color:var(--accent); font-size:13px; text-decoration:none; }
+    #cardInvalido a:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+
+<!-- CARD CARREGANDO -->
+<div class="card" id="cardCarregando">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+    </div>
+    <h1>Grupo Renaux</h1>
+    <p>Portal de Dashboards</p>
+  </div>
+  <div class="spinner"></div>
+  <p style="color:var(--text-muted);font-size:14px;text-align:center;">Verificando link de recuperação…</p>
+</div>
+
+<!-- CARD REDEFINIR SENHA -->
+<div class="card" id="cardReset" style="display:none;">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+    </div>
+    <h1>Grupo Renaux</h1>
+    <p>Redefinir senha</p>
+  </div>
+  <div class="msg-box msg-error"   id="resetError"></div>
+  <div class="msg-box msg-success" id="resetSuccess"></div>
+  <div class="field">
+    <label>Nova Senha</label>
+    <div class="input-wrap">
+      <input type="password" id="novaSenha" placeholder="••••••••" autocomplete="new-password" />
+      <button class="toggle-pwd" id="toggleNova" type="button">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    <div class="strength-label" id="strengthLabel"></div>
+  </div>
+  <div class="field">
+    <label>Confirmar Nova Senha</label>
+    <div class="input-wrap">
+      <input type="password" id="confirmarSenha" placeholder="••••••••" autocomplete="new-password" />
+      <button class="toggle-pwd" id="toggleConfirmar" type="button">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <button class="btn-login" id="btnReset">Salvar nova senha</button>
+  <div class="footer-brand">
+    <span style="font-size:11px;">Desenvolvido pela <strong>SmartData</strong> Consultoria</span>
+  </div>
+</div>
+
+<!-- CARD TOKEN INVÁLIDO -->
+<div class="card" id="cardInvalido">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+    </div>
+    <h1>Grupo Renaux</h1>
+  </div>
+  <div class="icon-warning">⚠️</div>
+  <p>Link inválido ou expirado.<br>Solicite um novo link de recuperação.</p>
+  <a href="/login.html">← Voltar ao login</a>
+  <div class="footer-brand" style="margin-top:24px;">
+    <span style="font-size:11px;">Desenvolvido pela <strong>SmartData</strong> Consultoria</span>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL  = 'https://rbahvyejqybajnufftio.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
+
+  const { createClient } = supabase;
+
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: { detectSessionInUrl: true, flowType: 'implicit' }
+  });
+
+  function mostrar(id) {
+    ['cardCarregando','cardReset','cardInvalido'].forEach(c => {
+      document.getElementById(c).style.display = (c === id) ? 'block' : 'none';
+    });
+  }
+
+  // Ler o hash da URL manualmente — formato: #access_token=...&type=recovery
+  (async () => {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const accessToken  = params.get('access_token');
+    const refreshToken = params.get('refresh_token') || '';
+    const type         = params.get('type');
+
+    if (accessToken && type === 'recovery') {
+      // Definir sessão manualmente com o token do hash
+      const { error } = await sb.auth.setSession({
+        access_token:  accessToken,
+        refresh_token: refreshToken
+      });
+      if (error) {
+        console.error('setSession error:', error);
+        mostrar('cardInvalido');
+      } else {
+        mostrar('cardReset');
+      }
+      return;
+    }
+
+    // Sem token no hash — verificar se já tem sessão ativa
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      mostrar('cardReset');
+    } else {
+      mostrar('cardInvalido');
+    }
+  })();
+
+  // Toggle senha
+  document.getElementById('toggleNova').addEventListener('click', () => {
+    const i = document.getElementById('novaSenha');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  });
+  document.getElementById('toggleConfirmar').addEventListener('click', () => {
+    const i = document.getElementById('confirmarSenha');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  });
+
+  // Barra de força
+  document.getElementById('novaSenha').addEventListener('input', () => {
+    const val = document.getElementById('novaSenha').value;
+    let score = 0;
+    if (val.length >= 8)          score++;
+    if (/[A-Z]/.test(val))        score++;
+    if (/[0-9]/.test(val))        score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = [
+      { pct:'0%',   color:'transparent', text:'' },
+      { pct:'25%',  color:'#e05555',     text:'Fraca' },
+      { pct:'50%',  color:'#e09a30',     text:'Razoável' },
+      { pct:'75%',  color:'#f5a623',     text:'Boa' },
+      { pct:'100%', color:'#34c97e',     text:'Forte' },
+    ];
+    document.getElementById('strengthFill').style.width      = levels[score].pct;
+    document.getElementById('strengthFill').style.background = levels[score].color;
+    document.getElementById('strengthLabel').textContent     = val.length > 0 ? levels[score].text : '';
+    document.getElementById('strengthLabel').style.color     = levels[score].color;
+  });
+
+  // Salvar nova senha
+  document.getElementById('confirmarSenha').addEventListener('keydown', e => {
+    if (e.key === 'Enter') salvarSenha();
+  });
+  document.getElementById('btnReset').addEventListener('click', salvarSenha);
+
+  async function salvarSenha() {
+    const nova      = document.getElementById('novaSenha').value;
+    const confirmar = document.getElementById('confirmarSenha').value;
+    const btn       = document.getElementById('btnReset');
+
+    document.getElementById('resetError').style.display   = 'none';
+    document.getElementById('resetSuccess').style.display = 'none';
+
+    if (!nova || !confirmar)  { showMsg('resetError', 'Preencha os dois campos.'); return; }
+    if (nova.length < 6)      { showMsg('resetError', 'A senha deve ter pelo menos 6 caracteres.'); return; }
+    if (nova !== confirmar)   { showMsg('resetError', 'As senhas não coincidem.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Salvando…';
+
+    const { error } = await sb.auth.updateUser({ password: nova });
+
+    if (error) {
+      showMsg('resetError', 'Erro ao salvar senha. Tente solicitar um novo link.');
+      btn.disabled = false;
+      btn.textContent = 'Salvar nova senha';
+    } else {
+      document.getElementById('resetSuccess').textContent = 'Senha redefinida com sucesso! Redirecionando…';
+      document.getElementById('resetSuccess').style.display = 'block';
+      btn.disabled = true;
+      await sb.auth.signOut();
+      setTimeout(() => { window.location.href = '/login.html'; }, 2500);
+    }
+  }
+
+  function showMsg(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+</script>
+</body>
+</html>
