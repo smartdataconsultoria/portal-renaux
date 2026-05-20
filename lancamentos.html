@@ -413,7 +413,6 @@ async function salvarDepartamento(){
   setBtnLoad('btn-dep',true);
   var res=await db.from('departamentos').insert({
     nome_departamento:nome,
-    codigo:'DEP-'+Date.now(),
     status_departamento:document.getElementById('dep-status').value||'ATIVO'
   });
   setBtnLoad('btn-dep',false);
@@ -451,7 +450,6 @@ async function importarDepartamentos(input){
         if(!nome){erros.push('Linha '+(i+2)+': nome obrigatório');return;}
         payload.push({
           nome_departamento:nome,
-          codigo:'IMP-'+Date.now()+'-'+i,
           status_departamento:String(r['Status (ATIVO ou INATIVO)']||'ATIVO').trim().toUpperCase()||'ATIVO'
         });
       });
