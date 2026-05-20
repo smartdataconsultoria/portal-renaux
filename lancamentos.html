@@ -560,9 +560,16 @@ function filtrarHcp(){
 var _hcpBusca='';
 var _absCache=[];var _absBusca='';var _coordsCache=[];var _escalasCache=[];var _absFiltroMes='';var _absFiltroAno='';var _absOrdem={col:'ano',asc:false};
 async function carregarFaltas(){
-  var res=await db.from('faltas').select('id,ano,mes,data_inicio_falta,data_final_falta,matricula,regional_id,coordenador_id,status_falta,cid,detalhe_cid,escala_id,departamento,nome_colaborador,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('ano',{ascending:false});
-  if(res.error){console.warn('faltas erro',res.error);return;}
-  _absCache=res.data||[];
+  // Buscar todos os registros em páginas de 1000
+  var todos=[];var from=0;var tamPag=1000;
+  while(true){
+    var res=await db.from('faltas').select('id,ano,mes,data_inicio_falta,data_final_falta,matricula,regional_id,coordenador_id,status_falta,cid,detalhe_cid,escala_id,departamento,nome_colaborador,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('ano',{ascending:false}).range(from,from+tamPag-1);
+    if(res.error){console.warn('faltas erro',res.error);break;}
+    todos=todos.concat(res.data||[]);
+    if(!res.data||res.data.length<tamPag)break;
+    from+=tamPag;
+  }
+  _absCache=todos;
   renderAbs();
 }
 function renderAbs(){
