@@ -547,7 +547,7 @@ function filtrarCol(){
   document.getElementById('tbody-col').innerHTML=dados.length?dados.map(function(r){
     var bdg=r.situacao==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">DESLIGADO</span>';
     var mat=r.matricula.replace(/\\/g,'\\').replace(/'/g,"\'");
-    return '<tr style="cursor:pointer" onclick="editarCol(''+mat+'')">'
+    return '<tr style="cursor:pointer" onclick="editarCol(\\'+mat+\\')">'
       +'<td>'+H(r.matricula)+'</td>'
       +'<td>'+H(r.nome)+'</td>'
       +'<td>'+H(r.cargo||'—')+'</td>'
@@ -556,7 +556,7 @@ function filtrarCol(){
       +'<td>'+H(r.data_admissao?fmtD(r.data_admissao):'—')+'</td>'
       +'<td>'+H(r.data_desligamento?fmtD(r.data_desligamento):'—')+'</td>'
       +'<td>'+bdg+'</td>'
-      +'<td><button class="btn-del" onclick="event.stopPropagation();del('colaboradores',''+mat+'',carregarColaboradores,true)">🗑</button></td>'
+      +'<td><button class="btn-del" onclick="event.stopPropagation();del(\'colaboradores\',\''+mat+'\',carregarColaboradores,true)">🗑</button></td>'
       +'</tr>';
   }).join(''):'<tr><td colspan="9" class="empty">Nenhum colaborador encontrado.</td></tr>';
 }
