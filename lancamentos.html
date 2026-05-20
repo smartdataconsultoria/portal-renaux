@@ -156,6 +156,7 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
             </div>
           </div>
           <div style="padding:12px 20px;border-bottom:1px solid var(--navy-border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="text" id="hcp-busca" placeholder="Buscar qualquer termo..." oninput="filtrarHcp()" style="flex:1;min-width:200px;background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none">
             <select id="hcp-filtro-mes" onchange="filtrarHcp()" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none">
               <option value="">Todos os meses</option>
               <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option>
@@ -163,9 +164,11 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               <option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
             </select>
             <input type="number" id="hcp-filtro-ano" placeholder="Ano" onchange="filtrarHcp()" min="2020" max="2030" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none;width:90px">
-            <button onclick="_hcpFiltroMes='';_hcpFiltroAno='';document.getElementById('hcp-filtro-mes').value='';document.getElementById('hcp-filtro-ano').value='';renderHcp()" style="background:transparent;border:1px solid var(--navy-border);border-radius:7px;color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;">Limpar filtro</button>
+            <button onclick="_hcpFiltroMes='';_hcpFiltroAno='';document.getElementById('hcp-filtro-mes').value='';document.getElementById('hcp-filtro-ano').value='';document.getElementById('hcp-busca').value='';renderHcp()" style="background:transparent;border:1px solid var(--navy-border);border-radius:7px;color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;">Limpar</button>
+            <button onclick="exportarHcp()" style="background:rgba(52,201,126,.1);border:1px solid rgba(52,201,126,.25);color:var(--green);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Excel</button>
           </div>
-          <div style="overflow-x:auto"><table>
+          <div id="hcp-scroll-top" style="overflow-x:auto;overflow-y:hidden;height:12px;border-bottom:1px solid var(--navy-border)"><div id="hcp-scroll-inner" style="height:1px"></div></div>
+          <div id="hcp-tbl-wrap" style="overflow-x:auto"><table id="hcp-tabela">
             <thead><tr>
               <th onclick="sortHcp('periodo_mes')" style="cursor:pointer;white-space:nowrap">Mês ↕</th>
               <th onclick="sortHcp('periodo_ano')" style="cursor:pointer">Ano ↕</th>
@@ -424,6 +427,10 @@ function renderHcp(){
   var dados=_hcpCache.filter(function(r){
     if(_hcpFiltroMes&&r.periodo_mes!==_hcpFiltroMes)return false;
     if(_hcpFiltroAno&&String(r.periodo_ano)!==String(_hcpFiltroAno))return false;
+    if(_hcpBusca){
+      var txt=[r.periodo_mes,r.periodo_ano,r.id_pve,r.motivo,r.departamento,r.regional,r.coordenador,r.funcao,r.funcionario_substituido,r.funcionario_contratatado,r.observacao].join(' ').toLowerCase();
+      if(!txt.includes(_hcpBusca))return false;
+    }
     return true;
   });
   // Ordenar
@@ -434,6 +441,7 @@ function renderHcp(){
     return 0;
   });
   document.getElementById('cnt-hcp-tbl').textContent=dados.length+' de '+_hcpCache.length+' registros';
+  setTimeout(sincScrollHcp,100);
   document.getElementById('tbody-hcp').innerHTML=dados.length?dados.map(function(r){
     return '<tr>'
       +'<td>'+H(r.periodo_mes||'—')+'</td>'
@@ -459,11 +467,48 @@ function sortHcp(col){
   if(_hcpOrdem.col===col){_hcpOrdem.asc=!_hcpOrdem.asc;}else{_hcpOrdem.col=col;_hcpOrdem.asc=true;}
   renderHcp();
 }
+function exportarHcp(){
+  if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
+  var dados=_hcpCache.filter(function(r){
+    if(_hcpFiltroMes&&r.periodo_mes!==_hcpFiltroMes)return false;
+    if(_hcpFiltroAno&&String(r.periodo_ano)!==String(_hcpFiltroAno))return false;
+    if(_hcpBusca){var txt=[r.periodo_mes,r.periodo_ano,r.id_pve,r.motivo,r.departamento,r.regional,r.coordenador,r.funcao,r.funcionario_substituido,r.funcionario_contratatado,r.observacao].join(' ').toLowerCase();if(!txt.includes(_hcpBusca))return false;}
+    return true;
+  });
+  if(!dados.length){toast('Nenhum dado para exportar.','err');return;}
+  var rows=dados.map(function(r){return{
+    'Mês':r.periodo_mes||'','Ano':r.periodo_ano||'',
+    'ID PVE':r.id_pve||'',
+    'Incluído em':r.incluido_em||'','Liberado em':r.liberado_em||'',
+    'Dt. Necessidade':r.data_necessidade||'','Dt. Assinatura':r.data_assinatura_contrato||'','Dt. Início':r.data_inicio_contrato||'',
+    'Motivo':r.motivo||'',
+    'Func. Substituído':r.funcionario_substituido||'','Func. Contratado':r.funcionario_contratatado||'',
+    'Departamento':r.departamento||'','Regional':r.regional||'','Coordenador':r.coordenador||'',
+    'Função':r.funcao||'','Observação':r.observacao||''
+  };});
+  var ws=window.XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:8},{wch:12},{wch:14},{wch:14},{wch:16},{wch:16},{wch:14},{wch:20},{wch:24},{wch:24},{wch:30},{wch:10},{wch:22},{wch:24},{wch:36}];
+  var wb=window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb,ws,'HCP');
+  window.XLSX.writeFile(wb,'HCP_Vagas_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+  toast('Excel gerado!','ok');
+}
+function sincScrollHcp(){
+  var top=document.getElementById('hcp-scroll-top');
+  var wrap=document.getElementById('hcp-tbl-wrap');
+  if(!top||!wrap)return;
+  var inner=document.getElementById('hcp-scroll-inner');
+  if(inner)inner.style.width=wrap.scrollWidth+'px';
+  top.onscroll=function(){wrap.scrollLeft=top.scrollLeft;};
+  wrap.onscroll=function(){top.scrollLeft=wrap.scrollLeft;};
+}
 function filtrarHcp(){
   _hcpFiltroMes=document.getElementById('hcp-filtro-mes').value;
   _hcpFiltroAno=document.getElementById('hcp-filtro-ano').value;
+  _hcpBusca=(document.getElementById('hcp-busca')?document.getElementById('hcp-busca').value||'':'').toLowerCase();
   renderHcp();
 }
+var _hcpBusca='';
 async function carregarFaltas(){var res=await db.from('faltas').select('id,mes,ano,matricula,data_inicio_falta,data_final_falta,status_falta,cid').order('criado_em',{ascending:false}).limit(100);var rows=res.data||[];document.getElementById('cnt-abs-tbl').textContent=rows.length+' registros';document.getElementById('tbody-abs').innerHTML=rows.length?rows.map(function(r){var bc=r.status_falta==='JUSTIFICADA'?'bdg-w':r.status_falta==='INJUSTIFICADA'?'bdg-r':'bdg-gold';return '<tr><td>'+H(r.mes||'')+'/'+(r.ano||'')+'</td><td>'+H(r.matricula)+'</td><td>'+fmtD(r.data_inicio_falta)+'</td><td>'+fmtD(r.data_final_falta)+'</td><td><span class="bdg '+bc+'">'+H(r.status_falta)+'</span></td><td>'+H(r.cid||'—')+'</td><td><button class="btn-del" onclick="del(\'faltas\','+r.id+',carregarFaltas)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Nenhum registro.</td></tr>';}
 async function carregarCalendario(){var res=await db.from('calendario_dias_uteis').select('id,ano,mes,qtd_dias,escala:escala_id(codigo_escala)').order('ano',{ascending:false}).limit(60);var rows=res.data||[];document.getElementById('tbody-cal').innerHTML=rows.length?rows.map(function(r){return '<tr><td>'+r.ano+'</td><td>'+H(r.mes)+'</td><td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td><td>'+r.qtd_dias+'</td><td><button class="btn-del" onclick="del(\'calendario_dias_uteis\','+r.id+',carregarCalendario)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="5" class="empty">Nenhum registro.</td></tr>';}
 var _colCache=[];var _colFiltro='TODOS';
