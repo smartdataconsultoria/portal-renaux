@@ -456,7 +456,7 @@ async function importarDepartamentos(input){
       if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
       if(!payload.length){toast('Nenhum dado válido.','err');return;}
       toast('Importando '+payload.length+' departamentos...','');
-      var res=await db.from('departamentos').insert(payload);
+      var res=await db.from('departamentos').upsert(payload,{onConflict:'nome_departamento',ignoreDuplicates:true});
       if(res.error){toast('Erro: '+res.error.message,'err');}
       else{toast(payload.length+' departamentos importados!','ok');await carregarDepartamentos();await carregarRefs();}
     }catch(err){toast('Erro ao processar: '+err.message,'err');}
