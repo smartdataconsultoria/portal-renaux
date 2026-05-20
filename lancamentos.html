@@ -273,6 +273,12 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               </select>
             </div>
             <div class="f"><label>Estado</label><input type="text" id="dep-estado" placeholder="Ex: PE, SP, RJ..."></div>
+            <div class="f"><label>Status</label>
+              <select id="dep-status">
+                <option value="ATIVO">ATIVO</option>
+                <option value="INATIVO">INATIVO</option>
+              </select>
+            </div>
           </div>
           <div class="actions">
             <button class="btn-save" id="btn-dep" data-lbl="Salvar Departamento" onclick="salvarDepartamento()">Salvar Departamento</button>
@@ -282,14 +288,21 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
         <div class="tbl-wrap">
           <div class="tbl-hd">
             <div class="tbl-hd-title">Departamentos cadastrados</div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="text" id="dep-busca" placeholder="Buscar..." oninput="filtrarDeptos()" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none;width:200px">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="text" id="dep-busca" placeholder="Buscar..." oninput="filtrarDeptos()" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none;width:180px">
+              <button class="btn-export" onclick="baixarModeloDep()" style="display:flex;align-items:center;gap:5px;background:rgba(200,146,42,.1);border:1px solid rgba(200,146,42,.28);color:var(--gold);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">
+                ⬇ Baixar Modelo
+              </button>
+              <button class="btn-export" onclick="document.getElementById('import-dep').click()" style="display:flex;align-items:center;gap:5px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.28);color:#7ab3f7;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">
+                ⬆ Importar Planilha
+              </button>
+              <input type="file" id="import-dep" accept=".xlsx,.xls" onchange="importarDepartamentos(this)" style="display:none">
               <div class="tbl-cnt" id="cnt-deptos-tbl">0 registros</div>
             </div>
           </div>
           <div style="overflow-x:auto"><table>
-            <thead><tr><th>Código</th><th>Nome do Departamento</th><th>Regional</th><th>Estado</th><th></th></tr></thead>
-            <tbody id="tbody-deptos"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+            <thead><tr><th>Código</th><th>Nome do Departamento</th><th>Regional</th><th>Estado</th><th>Status</th><th></th></tr></thead>
+            <tbody id="tbody-deptos"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -348,6 +361,7 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 var SB_AUTH_URL='https://rbahvyejqybajnufftio.supabase.co';
 var SB_AUTH_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
@@ -388,7 +402,7 @@ async function del(tabela,id,cb,isText){if(!confirm('Excluir este registro?'))re
 
 var _deptosCache=[];
 async function carregarDepartamentos(){
-  var res=await db.from('departamentos').select('id,nome_departamento,codigo,regional_id,estado_departamento').order('nome_departamento').limit(300);
+  var res=await db.from('departamentos').select('id,nome_departamento,codigo,regional_id,estado_departamento,status_departamento').order('nome_departamento').limit(300);
   _deptosCache=res.data||[];
   document.getElementById('cnt-deptos').textContent=_deptosCache.length;
   filtrarDeptos();
@@ -399,14 +413,17 @@ function filtrarDeptos(){
   document.getElementById('cnt-deptos-tbl').textContent=dados.length+' registros';
   var mapReg={1:'PE',2:'SP',3:'ADM'};
   document.getElementById('tbody-deptos').innerHTML=dados.length?dados.map(function(d){
+    var st=d.status_departamento||'ATIVO';
+    var bdg=st==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">'+H(st)+'</span>';
     return '<tr>'
       +'<td>'+H(d.codigo||'—')+'</td>'
       +'<td>'+H(d.nome_departamento||'—')+'</td>'
       +'<td>'+H(mapReg[d.regional_id]||'—')+'</td>'
       +'<td>'+H(d.estado_departamento||'—')+'</td>'
+      +'<td>'+bdg+'</td>'
       +'<td><button class="btn-del" onclick="del(\'departamentos\','+d.id+',carregarDepartamentos)">🗑</button></td>'
       +'</tr>';
-  }).join(''):'<tr><td colspan="5" class="empty">Nenhum departamento encontrado.</td></tr>';
+  }).join(''):'<tr><td colspan="6" class="empty">Nenhum departamento encontrado.</td></tr>';
 }
 async function salvarDepartamento(){
   var nome=document.getElementById('dep-nome').value.trim().toUpperCase();
@@ -416,16 +433,70 @@ async function salvarDepartamento(){
     nome_departamento:nome,
     codigo:document.getElementById('dep-codigo').value.trim().toUpperCase()||null,
     regional_id:parseInt(document.getElementById('dep-regional').value)||null,
-    estado_departamento:document.getElementById('dep-estado').value.trim().toUpperCase()||null
+    estado_departamento:document.getElementById('dep-estado').value.trim().toUpperCase()||null,
+    status_departamento:document.getElementById('dep-status').value||'ATIVO'
   });
   setBtnLoad('btn-dep',false);
   if(res.error){toast('Erro: '+res.error.message,'err');}
-  else{
-    toast('Departamento salvo!','ok');
-    limpar('dep');
-    await carregarDepartamentos();
-    await carregarRefs();
-  }
+  else{toast('Departamento salvo!','ok');limpar('dep');await carregarDepartamentos();await carregarRefs();}
+}
+function baixarModeloDep(){
+  var XLSX=window.XLSX;
+  if(!XLSX){toast('Biblioteca não carregada ainda.','err');return;}
+  var dados=[{
+    'Nome do Departamento*':'AMBEV RECIFE',
+    'Código':'PE-042',
+    'Regional (PE, SP ou ADM)':'PE',
+    'Estado (sigla)':'PE',
+    'Status (ATIVO ou INATIVO)':'ATIVO'
+  },{
+    'Nome do Departamento*':'CROWN CAMPINAS',
+    'Código':'SP-051',
+    'Regional (PE, SP ou ADM)':'SP',
+    'Estado (sigla)':'SP',
+    'Status (ATIVO ou INATIVO)':'ATIVO'
+  }];
+  var ws=XLSX.utils.json_to_sheet(dados);
+  ws['!cols']=[{wch:36},{wch:12},{wch:22},{wch:12},{wch:24}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Departamentos');
+  XLSX.writeFile(wb,'Modelo_Departamentos.xlsx');
+  toast('Modelo baixado!','ok');
+}
+async function importarDepartamentos(input){
+  if(!input.files||!input.files[0])return;
+  var XLSX=window.XLSX;
+  toast('Lendo planilha...','');
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array'});
+      var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      if(!rows.length){toast('Planilha vazia.','err');return;}
+      var mapReg={'PE':1,'SP':2,'ADM':3};
+      var payload=[];var erros=[];
+      rows.forEach(function(r,i){
+        var nome=String(r['Nome do Departamento*']||r['Nome do Departamento']||'').trim().toUpperCase();
+        if(!nome){erros.push('Linha '+(i+2)+': nome obrigatório');return;}
+        var regSigla=String(r['Regional (PE, SP ou ADM)']||'').trim().toUpperCase();
+        payload.push({
+          nome_departamento:nome,
+          codigo:String(r['Código']||'').trim().toUpperCase()||null,
+          regional_id:mapReg[regSigla]||null,
+          estado_departamento:String(r['Estado (sigla)']||'').trim().toUpperCase()||null,
+          status_departamento:String(r['Status (ATIVO ou INATIVO)']||'ATIVO').trim().toUpperCase()||'ATIVO'
+        });
+      });
+      if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
+      if(!payload.length){toast('Nenhum dado válido.','err');return;}
+      toast('Importando '+payload.length+' departamentos...','');
+      var res=await db.from('departamentos').insert(payload);
+      if(res.error){toast('Erro: '+res.error.message,'err');}
+      else{toast(payload.length+' departamentos importados!','ok');await carregarDepartamentos();await carregarRefs();}
+    }catch(err){toast('Erro ao processar: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+  input.value='';
 }
 
 window.addEventListener('load',async function(){
