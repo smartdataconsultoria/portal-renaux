@@ -265,7 +265,7 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               <div class="f"><label>Departamento</label><select id="abs-depto"><option value="">Selecione...</option></select></div>
               <div class="f"><label>Nome do Colaborador</label><input type="text" id="abs-nome-colab" placeholder="Preenchido automaticamente"></div>
               <div class="f"><label>Status da Falta *</label>
-                <select id="abs-status" onchange="toggleCid()"><option value="">Selecione...</option><option>JUSTIFICADA</option><option>INJUSTIFICADA</option><option>DISCIPLINADA</option></select>
+                <select id="abs-status" onchange="toggleCid()"><option value="">Selecione...</option><option>JUSTIFICADA</option><option>INJUSTIFICADA</option><option>ADVERTÊNCIA</option><option>SUSPENSÃO</option></select>
               </div>
               <div class="f" id="cid-campo" style="display:none"><label>CID</label><select id="abs-cid"><option value="">Selecione...</option></select></div>
               <div class="f" id="cid-det-campo" style="display:none"><label>Detalhe CID</label><input type="text" id="abs-cid-det"></div>
@@ -575,7 +575,7 @@ function renderAbs(){
   document.getElementById('cnt-abs-tbl').textContent=dados.length+' de '+_absCache.length+' registros';
   setTimeout(sincScrollAbs,100);
   document.getElementById('tbody-abs').innerHTML=dados.length?dados.map(function(r){
-    var bc=r.status_falta==='JUSTIFICADA'?'bdg-w':r.status_falta==='INJUSTIFICADA'?'bdg-r':'bdg-gold';
+    var bc=r.status_falta==='JUSTIFICADA'?'bdg-w':r.status_falta==='INJUSTIFICADA'?'bdg-r':r.status_falta==='DISCIPLINADA'?'bdg-gold':r.status_falta==='ADVERTÊNCIA'?'bdg-warn':'bdg-gold';
     return '<tr>'
       +'<td>'+H(r.ano||'—')+'</td>'
       +'<td>'+H(r.mes||'—')+'</td>'
@@ -667,7 +667,11 @@ async function importarAbs(input){
         var ano=parseInt(r['Ano*']||r['Ano'])||0;
         var mes=String(r['Mês*']||r['Mês']||'').trim().toUpperCase();
         var mat=String(r['Matrícula*']||r['Matrícula']||'').trim();
-        var status=String(r['Status da Falta*']||r['Status Falta']||'').trim().toUpperCase();
+        var statusRaw=String(r['Status da Falta*']||r['Status Falta']||'').trim().toUpperCase();
+        // Normalizar variações comuns
+        var mapStatus={'JUSTIFICADO':'JUSTIFICADA','INJUSTIFICADO':'INJUSTIFICADA','JUST':'JUSTIFICADA','INJUST':'INJUSTIFICADA','ADV':'ADVERTÊNCIA','SUSP':'SUSPENSÃO'};
+        var status=mapStatus[statusRaw]||statusRaw;
+        if(!['JUSTIFICADA','INJUSTIFICADA','ADVERTÊNCIA','SUSPENSÃO'].includes(status)){erros.push('Linha '+(i+2)+': Status inválido "'+statusRaw+'" — use JUSTIFICADA, INJUSTIFICADA, ADVERTÊNCIA ou SUSPENSÃO');return;}
         if(!ano||!mes||!mat||!status){erros.push('Linha '+(i+2)+': Ano, Mês, Matrícula e Status obrigatórios');return;}
         var dtIni=parseDtImport(r['Data Início Falta*']||r['Data Início Falta']||r['Dt. Início Falta']);
         var dtFim=parseDtImport(r['Data Final Falta*']||r['Data Final Falta']||r['Dt. Final Falta']);
