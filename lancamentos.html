@@ -590,7 +590,7 @@ function renderAbs(){
       +'<td>'+H(r.cid||'—')+'</td>'
       +'<td>'+H(r.detalhe_cid||'—')+'</td>'
       +'<td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td>'
-      +'<td><button class="btn-del" onclick="del('faltas','+r.id+',carregarFaltas)">🗑</button></td>'
+      +'<td><button class="btn-del" onclick="del(\'faltas\','+r.id+',carregarFaltas)">🗑</button></td>'
       +'</tr>';
   }).join(''):'<tr><td colspan="14" class="empty">Nenhum registro.</td></tr>';
 }
