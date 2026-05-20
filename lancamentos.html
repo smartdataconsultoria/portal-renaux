@@ -116,26 +116,25 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
         <div class="card">
           <div class="card-title">Nova Vaga</div>
           <div class="grid g3">
-            <div class="f"><label>Mês</label><select id="hcp-mes"></select></div>
-            <div class="f"><label>Ano</label><input type="number" id="hcp-ano" min="2024" max="2030"></div>
-            <div class="f"><label>ID PVE</label><input type="text" id="hcp-idpve" placeholder="Ex: 20250514"></div>
+            <div class="f"><label>Mês *</label><select id="hcp-mes"></select></div>
+            <div class="f"><label>Ano *</label><input type="number" id="hcp-ano" min="2024" max="2030"></div>
+            <div class="f"><label>ID PVE</label><input type="text" id="hcp-idpve" placeholder="Ex: 20250514 ou SEM PVE"></div>
             <div class="f"><label>Incluído em</label><input type="date" id="hcp-incluido"></div>
             <div class="f"><label>Liberado em</label><input type="date" id="hcp-liberado"></div>
             <div class="f"><label>Data Necessidade</label><input type="date" id="hcp-necessidade"></div>
-            <div class="f"><label>Data Assinatura</label><input type="date" id="hcp-assinatura"></div>
+            <div class="f"><label>Data Assinatura Contrato</label><input type="date" id="hcp-assinatura"></div>
             <div class="f"><label>Data Início Contrato</label><input type="date" id="hcp-inicio"></div>
-            <div class="f"><label>Motivo</label>
+            <div class="f"><label>Motivo *</label>
               <select id="hcp-motivo"><option value="">Selecione...</option><option>SUBSTITUIÇÃO</option><option>CONTRATO NOVO</option><option>FERISTA</option><option>AUMENTO DE QUADRO</option><option>DEMISSÃO NA JUSTA CAUSA</option></select>
             </div>
-            <div class="f"><label>Tipo de Vaga</label>
-              <select id="hcp-tipovaga"><option value="">Selecione...</option><option>SUBSTITUIÇÃO</option><option>CONTRATO NOVO</option><option>FERISTA</option><option>AUMENTO DE QUADRO</option></select>
+            <div class="f"><label>Departamento</label><input type="text" id="hcp-depto" placeholder="Digite o departamento..." list="hcp-depto-list"><datalist id="hcp-depto-list"></datalist></div>
+            <div class="f"><label>Regional</label>
+              <select id="hcp-regional"><option value="">Selecione...</option><option>PE</option><option>SP</option><option>ADM</option></select>
             </div>
-            <div class="f"><label>Departamento</label><select id="hcp-depto"><option value="">Selecione...</option></select></div>
-            <div class="f"><label>Regional</label><select id="hcp-regional"><option value="">Selecione...</option></select></div>
             <div class="f"><label>Coordenador</label><select id="hcp-coord"><option value="">Selecione...</option></select></div>
             <div class="f"><label>Função</label><input type="text" id="hcp-funcao" placeholder="Ex: AUXILIAR DE OPERAÇÃO"></div>
-            <div class="f"><label>Matrícula Substituído</label><input type="text" id="hcp-subst"></div>
-            <div class="f"><label>Matrícula Contratado</label><input type="text" id="hcp-contrat"></div>
+            <div class="f"><label>Funcionário Substituído</label><input type="text" id="hcp-subst" placeholder="Nome ou matrícula"></div>
+            <div class="f"><label>Funcionário Contratado</label><input type="text" id="hcp-contrat" placeholder="Nome ou matrícula"></div>
             <div class="f full"><label>Observação</label><textarea id="hcp-obs"></textarea></div>
           </div>
           <div class="actions">
@@ -144,10 +143,18 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
           </div>
         </div>
         <div class="tbl-wrap">
-          <div class="tbl-hd"><div class="tbl-hd-title">Vagas registradas</div><div class="tbl-cnt" id="cnt-hcp-tbl">0 registros</div></div>
+          <div class="tbl-hd">
+            <div class="tbl-hd-title">Vagas registradas</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button onclick="baixarModeloHcp()" style="background:rgba(200,146,42,.1);border:1px solid rgba(200,146,42,.28);color:var(--gold);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Baixar Modelo</button>
+              <button onclick="document.getElementById('import-hcp-file').click()" style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.28);color:#7ab3f7;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬆ Importar Planilha</button>
+              <input type="file" id="import-hcp-file" accept=".xlsx,.xls" onchange="importarHcp(this)" style="display:none">
+              <div class="tbl-cnt" id="cnt-hcp-tbl">0 registros</div>
+            </div>
+          </div>
           <div style="overflow-x:auto"><table>
-            <thead><tr><th>Mês/Ano</th><th>ID PVE</th><th>Motivo</th><th>Tipo</th><th>Departamento</th><th>Coordenador</th><th>Função</th><th></th></tr></thead>
-            <tbody id="tbody-hcp"><tr><td colspan="8" class="empty">Carregando...</td></tr></tbody>
+            <thead><tr><th>Mês/Ano</th><th>ID PVE</th><th>Motivo</th><th>Departamento</th><th>Regional</th><th>Coordenador</th><th>Função</th><th>Incluído</th><th>Liberado</th><th></th></tr></thead>
+            <tbody id="tbody-hcp"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -371,11 +378,32 @@ function tabAbs(t){document.getElementById('painel-falta').style.display=t==='fa
 function tabMeta(t){['hcp','abs','turn','tre'].forEach(function(k){document.getElementById('meta-'+k).style.display=k===t?'':'none';document.getElementById('tm-'+k).classList.toggle('on',k===t);});}
 function toggleCid(){var v=document.getElementById('abs-status').value==='JUSTIFICADA';document.getElementById('cid-campo').style.display=v?'':'none';document.getElementById('cid-det-campo').style.display=v?'':'none';}
 function limpar(p){document.querySelectorAll('[id^="'+p+'-"]').forEach(function(e){if(e.tagName==='INPUT'||e.tagName==='TEXTAREA')e.value='';if(e.tagName==='SELECT')e.selectedIndex=0;});var i=document.getElementById('abs-info');if(i)i.style.display='none';}
-async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome'),db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala'),db.from('regioes').select('id,sigla').eq('ativo',true).order('sigla'),db.from('departamentos').select('id,nome_departamento').order('nome_departamento'),db.from('cid').select('codigo,descricao').order('codigo')]);var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+d.id+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;}
+async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome'),db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala'),db.from('regioes').select('id,sigla').eq('ativo',true).order('sigla'),db.from('departamentos').select('id,nome_departamento').order('nome_departamento'),db.from('cid').select('codigo,descricao').order('codigo')]);var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+d.id+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;
+  var dl=document.getElementById('hcp-depto-list');
+  if(dl)dl.innerHTML=(r[3].data||[]).map(function(d){return '<option value="'+H(d.nome_departamento)+'">'+H(d.nome_departamento)+'</option>';}).join('');
+}
 var _buscaTmr=null;
 async function buscarColab(){clearTimeout(_buscaTmr);_buscaTmr=setTimeout(async function(){var mat=document.getElementById('abs-mat').value.trim();var box=document.getElementById('abs-info');if(mat.length<3){box.style.display='none';return;}var res=await db.from('colaboradores').select('nome,cargo,escala_id,regional_id,coordenador_id').eq('matricula',mat).maybeSingle();var data=res.data;if(data){document.getElementById('abs-info-nome').textContent=data.nome;document.getElementById('abs-info-cargo').textContent=' · '+(data.cargo||'');box.style.display='';if(data.regional_id){var rEl=document.getElementById('abs-regional');if(rEl)rEl.value=data.regional_id;}if(data.coordenador_id){var cEl=document.getElementById('abs-coord');if(cEl)cEl.value=data.coordenador_id;}if(data.escala_id){var eEl=document.getElementById('abs-escala');if(eEl)eEl.value=data.escala_id;}}else{box.style.display='none';}},400);}
 async function atualizarContadores(){var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();var ano=new Date().getFullYear();var r=await Promise.all([db.from('hcp_vagas').select('id',{count:'exact',head:true}).eq('periodo_ano',ano).eq('periodo_mes',mes),db.from('faltas').select('id',{count:'exact',head:true}).eq('ano',ano).eq('mes',mes),db.from('colaboradores').select('matricula',{count:'exact',head:true}).eq('situacao','ATIVO')]);document.getElementById('cnt-hcp').textContent=r[0].count||0;document.getElementById('cnt-abs').textContent=r[1].count||0;document.getElementById('cnt-colab').textContent=r[2].count||0;}
-async function carregarHcp(){var res=await db.from('hcp_vagas').select('id,periodo_mes,periodo_ano,id_pve,motivo,tipo_vagas,departamento,coordenador:coordenador_id(nome),funcao').order('criado_em',{ascending:false}).limit(100);var rows=res.data||[];document.getElementById('cnt-hcp-tbl').textContent=rows.length+' registros';document.getElementById('tbody-hcp').innerHTML=rows.length?rows.map(function(r){return '<tr><td>'+H(r.periodo_mes||'')+'/'+(r.periodo_ano||'')+'</td><td>'+H(r.id_pve||'—')+'</td><td>'+H(r.motivo||'—')+'</td><td>'+H(r.tipo_vagas||'—')+'</td><td>'+H(r.departamento||'—')+'</td><td>'+H(r.coordenador?r.coordenador.nome:'—')+'</td><td>'+H(r.funcao||'—')+'</td><td><button class="btn-del" onclick="del(\'hcp_vagas\','+r.id+',carregarHcp)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="8" class="empty">Nenhum registro.</td></tr>';}
+async function carregarHcp(){
+  var res=await db.from('hcp_vagas').select('id,periodo_mes,periodo_ano,id_pve,motivo,departamento,regional,coordenador,funcao,incluido_em,liberado_em').order('criado_em',{ascending:false}).limit(200);
+  var rows=res.data||[];
+  document.getElementById('cnt-hcp-tbl').textContent=rows.length+' registros';
+  document.getElementById('tbody-hcp').innerHTML=rows.length?rows.map(function(r){
+    return '<tr>'
+      +'<td>'+H(r.periodo_mes||'')+'/'+(r.periodo_ano||'')+'</td>'
+      +'<td>'+H(r.id_pve||'—')+'</td>'
+      +'<td>'+H(r.motivo||'—')+'</td>'
+      +'<td>'+H(r.departamento||'—')+'</td>'
+      +'<td>'+H(r.regional||'—')+'</td>'
+      +'<td>'+H(r.coordenador||'—')+'</td>'
+      +'<td>'+H(r.funcao||'—')+'</td>'
+      +'<td>'+fmtD(r.incluido_em)+'</td>'
+      +'<td>'+fmtD(r.liberado_em)+'</td>'
+      +'<td><button class="btn-del" onclick="del(\'hcp_vagas\','+r.id+',carregarHcp)">🗑</button></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="10" class="empty">Nenhum registro.</td></tr>';
+}
 async function carregarFaltas(){var res=await db.from('faltas').select('id,mes,ano,matricula,data_inicio_falta,data_final_falta,status_falta,cid').order('criado_em',{ascending:false}).limit(100);var rows=res.data||[];document.getElementById('cnt-abs-tbl').textContent=rows.length+' registros';document.getElementById('tbody-abs').innerHTML=rows.length?rows.map(function(r){var bc=r.status_falta==='JUSTIFICADA'?'bdg-w':r.status_falta==='INJUSTIFICADA'?'bdg-r':'bdg-gold';return '<tr><td>'+H(r.mes||'')+'/'+(r.ano||'')+'</td><td>'+H(r.matricula)+'</td><td>'+fmtD(r.data_inicio_falta)+'</td><td>'+fmtD(r.data_final_falta)+'</td><td><span class="bdg '+bc+'">'+H(r.status_falta)+'</span></td><td>'+H(r.cid||'—')+'</td><td><button class="btn-del" onclick="del(\'faltas\','+r.id+',carregarFaltas)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Nenhum registro.</td></tr>';}
 async function carregarCalendario(){var res=await db.from('calendario_dias_uteis').select('id,ano,mes,qtd_dias,escala:escala_id(codigo_escala)').order('ano',{ascending:false}).limit(60);var rows=res.data||[];document.getElementById('tbody-cal').innerHTML=rows.length?rows.map(function(r){return '<tr><td>'+r.ano+'</td><td>'+H(r.mes)+'</td><td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td><td>'+r.qtd_dias+'</td><td><button class="btn-del" onclick="del(\'calendario_dias_uteis\','+r.id+',carregarCalendario)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="5" class="empty">Nenhum registro.</td></tr>';}
 var _colCache=[];var _colFiltro='TODOS';
@@ -383,7 +411,97 @@ async function carregarColaboradores(){var res=await db.from('colaboradores').se
 function setFiltro(s){_colFiltro=s;['TODOS','ATIVO','DESLIGADO'].forEach(function(k){var b=document.getElementById('f-'+k.toLowerCase());if(b)b.classList.toggle('on',k===s||(k==='TODOS'&&s==='TODOS'));});filtrarCol();}
 function filtrarCol(){var busca=(document.getElementById('col-busca').value||'').toLowerCase();var dados=_colCache.filter(function(r){if(_colFiltro!=='TODOS'&&r.situacao!==_colFiltro)return false;if(busca){var m=(r.matricula||'').toLowerCase(),n=(r.nome||'').toLowerCase();if(!m.includes(busca)&&!n.includes(busca))return false;}return true;});document.getElementById('cnt-col-tbl').textContent=dados.length+' registros';document.getElementById('tbody-col').innerHTML=dados.length?dados.map(function(r){var escCod=r.escala?r.escala.codigo_escala:'—';var reg=r.regional?r.regional.sigla:'—';var dep=r.departamento?r.departamento.nome_departamento:'—';var bdg=r.situacao==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">DESLIGADO</span>';var mat=r.matricula.replace(/\\/g,'\\\\').replace(/'/g,"\\'");return '<tr style="cursor:pointer" onclick="editarCol(\''+mat+'\')">'+'<td>'+H(r.matricula)+'</td><td>'+H(r.nome)+'</td><td>'+H(r.cargo||'—')+'</td>'+'<td>'+H(dep)+'</td><td>'+H(reg)+'</td><td>'+H(escCod)+'</td><td>'+bdg+'</td>'+'<td><button class="btn-del" onclick="event.stopPropagation();del(\'colaboradores\',\''+mat+'\',carregarColaboradores,true)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="8" class="empty">Nenhum colaborador encontrado.</td></tr>';}
 function editarCol(mat){var r=_colCache.find(function(c){return c.matricula===mat;});if(!r)return;['col-matricula','col-nome','col-cpf','col-cargo','col-estado','col-admissao','col-desligamento','col-motivo-adm','col-motivo-dem'].forEach(function(id){var map={  'col-matricula':r.matricula,'col-nome':r.nome,'col-cpf':r.cpf||'','col-cargo':r.cargo||'','col-estado':r.estado_departamento||'','col-admissao':r.data_admissao||'','col-desligamento':r.data_desligamento||'','col-motivo-adm':r.motivo_admissao||'','col-motivo-dem':r.motivo_demissao||''};var e=document.getElementById(id);if(e)e.value=map[id];});document.getElementById('col-situacao').value=r.situacao||'ATIVO';if(r.regional_id){var rEl=document.getElementById('col-regional');if(rEl)rEl.value=r.regional_id;}if(r.coordenador_id){var cEl=document.getElementById('col-coord');if(cEl)cEl.value=r.coordenador_id;}if(r.escala_id){var eEl=document.getElementById('col-escala');if(eEl)eEl.value=r.escala_id;}if(r.departamento_id){var dEl=document.getElementById('col-depto');if(dEl)dEl.value=r.departamento_id;}var btn=document.getElementById('btn-col');btn.textContent='Atualizar Colaborador';btn.setAttribute('data-lbl','Atualizar Colaborador');document.getElementById('mod-colaboradores').scrollIntoView({behavior:'smooth'});toast('Colaborador carregado. Edite e clique em Atualizar.','');}
-async function salvarHcp(){var mes=document.getElementById('hcp-mes').value;var ano=parseInt(document.getElementById('hcp-ano').value);var motivo=document.getElementById('hcp-motivo').value;if(!mes||!ano||!motivo){toast('Preencha Mês, Ano e Motivo.','err');return;}setBtnLoad('btn-hcp',true);var res=await db.from('hcp_vagas').insert({periodo_mes:mes,periodo_ano:ano,id_pve:document.getElementById('hcp-idpve').value||null,incluido_em:document.getElementById('hcp-incluido').value||null,liberado_em:document.getElementById('hcp-liberado').value||null,data_necessidade:document.getElementById('hcp-necessidade').value||null,data_assinatura_contrato:document.getElementById('hcp-assinatura').value||null,data_inicio_contrato:document.getElementById('hcp-inicio').value||null,motivo:motivo,tipo_vagas:document.getElementById('hcp-tipovaga').value||null,departamento_id:parseInt(document.getElementById('hcp-depto').value)||null,regional_id:parseInt(document.getElementById('hcp-regional').value)||null,coordenador_id:parseInt(document.getElementById('hcp-coord').value)||null,funcao:document.getElementById('hcp-funcao').value||null,colaborador_substituido_id:document.getElementById('hcp-subst').value||null,colaborador_contratado_id:document.getElementById('hcp-contrat').value||null,observacao:document.getElementById('hcp-obs').value||null});setBtnLoad('btn-hcp',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Vaga salva!','ok');limpar('hcp');carregarHcp();atualizarContadores();}}
+async function salvarHcp(){
+  var mes=document.getElementById('hcp-mes').value;
+  var ano=parseInt(document.getElementById('hcp-ano').value);
+  var motivo=document.getElementById('hcp-motivo').value;
+  if(!mes||!ano||!motivo){toast('Preencha Mês, Ano e Motivo.','err');return;}
+  setBtnLoad('btn-hcp',true);
+  var coordEl=document.getElementById('hcp-coord');
+  var coordId=parseInt(coordEl.value)||null;
+  var coordNome=coordId?(coordEl.options[coordEl.selectedIndex].text||null):null;
+  var res=await db.from('hcp_vagas').insert({
+    periodo_mes:mes,
+    periodo_ano:ano,
+    id_pve:document.getElementById('hcp-idpve').value||null,
+    incluido_em:document.getElementById('hcp-incluido').value||null,
+    liberado_em:document.getElementById('hcp-liberado').value||null,
+    data_necessidade:document.getElementById('hcp-necessidade').value||null,
+    data_assinatura_contrato:document.getElementById('hcp-assinatura').value||null,
+    data_inicio_contrato:document.getElementById('hcp-inicio').value||null,
+    motivo:motivo,
+    departamento:document.getElementById('hcp-depto').value||null,
+    regional:document.getElementById('hcp-regional').value||null,
+    coordenador_id:coordId,
+    coordenador:coordNome,
+    funcao:document.getElementById('hcp-funcao').value||null,
+    funcionario_substituido:document.getElementById('hcp-subst').value||null,
+    funcionario_contratatado:document.getElementById('hcp-contrat').value||null,
+    observacao:document.getElementById('hcp-obs').value||null
+  });
+  setBtnLoad('btn-hcp',false);
+  if(res.error){toast('Erro: '+res.error.message,'err');}
+  else{toast('Vaga salva!','ok');limpar('hcp');carregarHcp();atualizarContadores();}
+}
+function baixarModeloHcp(){
+  if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
+  var dados=[{'Período Mês*':'MAIO','Período Ano*':2025,'ID PVE':'20250514','Incluído em (AAAA-MM-DD)':'2025-05-01','Liberado em (AAAA-MM-DD)':'2025-05-10','Data Necessidade (AAAA-MM-DD)':'2025-05-20','Data Assinatura Contrato (AAAA-MM-DD)':'2025-05-18','Data Início Contrato (AAAA-MM-DD)':'2025-06-01','Motivo':'SUBSTITUIÇÃO','Departamento':'AMBEV RECIFE','Regional':'PE','Coordenador':'NOME DO COORDENADOR','Função':'AUXILIAR DE OPERAÇÃO','Funcionário Substituído':'JOÃO SILVA','Funcionário Contratado':'MARIA SANTOS','Observação':'Substituição por afastamento médico'}];
+  var ws=window.XLSX.utils.json_to_sheet(dados);
+  ws['!cols']=[{wch:16},{wch:14},{wch:14},{wch:26},{wch:24},{wch:26},{wch:28},{wch:26},{wch:22},{wch:30},{wch:12},{wch:26},{wch:26},{wch:24},{wch:24},{wch:36}];
+  var wb=window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb,ws,'HCP');
+  window.XLSX.writeFile(wb,'Modelo_HCP.xlsx');
+  toast('Modelo baixado!','ok');
+}
+async function importarHcp(input){
+  if(!input.files||!input.files[0])return;
+  toast('Lendo planilha...','');
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var wb=window.XLSX.read(e.target.result,{type:'array'});
+      var rows=window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      if(!rows.length){toast('Planilha vazia.','err');return;}
+      var payload=[];var erros=[];
+      rows.forEach(function(r,i){
+        var mes=String(r['Período Mês*']||'').trim().toUpperCase();
+        var ano=parseInt(r['Período Ano*'])||0;
+        var motivo=String(r['Motivo']||'').trim();
+        if(!mes||!ano||!motivo){erros.push('Linha '+(i+2)+': Mês, Ano e Motivo obrigatórios');return;}
+        function parseData(v){if(!v||v==='')return null;var s=String(v).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;var p=s.split('/');if(p.length===3)return p[2]+'-'+p[1]+'-'+p[0];var n=parseInt(s);if(!isNaN(n)&&n>1000){var d=new Date((n-25569)*86400*1000);return d.toISOString().split('T')[0];}return null;}
+        payload.push({
+          periodo_mes:mes,periodo_ano:ano,
+          id_pve:String(r['ID PVE']||'').trim()||null,
+          incluido_em:parseData(r['Incluído em (AAAA-MM-DD)']),
+          liberado_em:parseData(r['Liberado em (AAAA-MM-DD)']),
+          data_necessidade:parseData(r['Data Necessidade (AAAA-MM-DD)']),
+          data_assinatura_contrato:parseData(r['Data Assinatura Contrato (AAAA-MM-DD)']),
+          data_inicio_contrato:parseData(r['Data Início Contrato (AAAA-MM-DD)']),
+          motivo:motivo,
+          departamento:String(r['Departamento']||'').trim()||null,
+          regional:String(r['Regional']||'').trim()||null,
+          coordenador:String(r['Coordenador']||'').trim()||null,
+          funcao:String(r['Função']||'').trim()||null,
+          funcionario_substituido:String(r['Funcionário Substituído']||'').trim()||null,
+          funcionario_contratatado:String(r['Funcionário Contratado']||'').trim()||null,
+          observacao:String(r['Observação']||'').trim()||null
+        });
+      });
+      if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
+      if(!payload.length){toast('Nenhum dado válido.','err');return;}
+      toast('Importando '+payload.length+' registros...','');
+      var lote=50;
+      for(var i=0;i<payload.length;i+=lote){
+        var res=await db.from('hcp_vagas').insert(payload.slice(i,i+lote));
+        if(res.error){toast('Erro no lote: '+res.error.message,'err');input.value='';return;}
+      }
+      toast(payload.length+' vagas importadas!','ok');
+      carregarHcp();atualizarContadores();
+    }catch(err){toast('Erro: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+  input.value='';
+}
 async function salvarFalta(){var mes=document.getElementById('abs-mes').value;var ano=parseInt(document.getElementById('abs-ano').value);var mat=document.getElementById('abs-mat').value.trim();var status=document.getElementById('abs-status').value;if(!mes||!ano||!mat||!status){toast('Preencha Mês, Ano, Matrícula e Status.','err');return;}setBtnLoad('btn-abs',true);var res=await db.from('faltas').insert({mes:mes,ano:ano,matricula:mat,status_falta:status,data_inicio_falta:document.getElementById('abs-inicio').value||null,data_final_falta:document.getElementById('abs-fim').value||null,regional_id:parseInt(document.getElementById('abs-regional').value)||null,coordenador_id:parseInt(document.getElementById('abs-coord').value)||null,escala_id:parseInt(document.getElementById('abs-escala').value)||null,cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid').value||null):null,detalhe_cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid-det').value||null):null});setBtnLoad('btn-abs',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Falta salva!','ok');limpar('abs');carregarFaltas();atualizarContadores();}}
 async function salvarCalendario(){var mes=document.getElementById('cal-mes').value;var ano=parseInt(document.getElementById('cal-ano').value);var escId=parseInt(document.getElementById('cal-escala').value);var dias=parseInt(document.getElementById('cal-dias').value);if(!mes||!ano||!escId||!dias){toast('Preencha todos os campos.','err');return;}var res=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:escId,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Salvo!','ok');document.getElementById('cal-mes').selectedIndex=0;document.getElementById('cal-dias').value='';carregarCalendario();}}
 async function salvarColaborador(){var mat=document.getElementById('col-matricula').value.trim();var nome=document.getElementById('col-nome').value.trim();if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}setBtnLoad('btn-col',true);var res=await db.from('colaboradores').upsert({matricula:mat,nome:nome,cpf:document.getElementById('col-cpf').value||null,cargo:document.getElementById('col-cargo').value||null,departamento_id:parseInt(document.getElementById('col-depto').value)||null,estado_departamento:document.getElementById('col-estado').value||null,regional_id:parseInt(document.getElementById('col-regional').value)||null,coordenador_id:parseInt(document.getElementById('col-coord').value)||null,escala_id:parseInt(document.getElementById('col-escala').value)||null,data_admissao:document.getElementById('col-admissao').value||null,data_desligamento:document.getElementById('col-desligamento').value||null,situacao:document.getElementById('col-situacao').value||'ATIVO',motivo_admissao:document.getElementById('col-motivo-adm').value||null,motivo_demissao:document.getElementById('col-motivo-dem').value||null},{onConflict:'matricula'});setBtnLoad('btn-col',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Colaborador salvo!','ok');limpar('col');var btn=document.getElementById('btn-col');btn.textContent='Salvar Colaborador';btn.setAttribute('data-lbl','Salvar Colaborador');carregarColaboradores();atualizarContadores();}}
