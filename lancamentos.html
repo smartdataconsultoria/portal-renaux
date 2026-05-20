@@ -535,11 +535,11 @@ async function importarHcp(input){
         if(!mes||!ano||!motivo){erros.push('Linha '+(i+2)+': Mês, Ano e Motivo obrigatórios');return;}
         var parseData=parseDtImport;
         var datas={
-          incluido_em:parseDtImport(r['Incluído em (AAAA-MM-DD)']),
-          liberado_em:parseDtImport(r['Liberado em (AAAA-MM-DD)']),
-          data_necessidade:parseDtImport(r['Data Necessidade (AAAA-MM-DD)']),
-          data_assinatura_contrato:parseDtImport(r['Data Assinatura Contrato (AAAA-MM-DD)']),
-          data_inicio_contrato:parseDtImport(r['Data Início Contrato (AAAA-MM-DD)'])
+          incluido_em:parseDtImport(r['Incluído em']||r['Incluído em (AAAA-MM-DD)']),
+          liberado_em:parseDtImport(r['Liberado em']||r['Liberado em (AAAA-MM-DD)']),
+          data_necessidade:parseDtImport(r['Data Necessidade']||r['Data Necessidade (AAAA-MM-DD)']),
+          data_assinatura_contrato:parseDtImport(r['Data Assinatura Contrato']||r['Data Assinatura Contrato (AAAA-MM-DD)']),
+          data_inicio_contrato:parseDtImport(r['Data Início Contrato']||r['Data Início Contrato (AAAA-MM-DD)'])
         };
         var datasInvalidas=Object.entries(datas).filter(function(e){return e[1]==='INVALIDA';}).map(function(e){return e[0];});
         if(datasInvalidas.length){erros.push('Linha '+(i+2)+': data inválida em '+datasInvalidas.join(', '));return;}
