@@ -1726,15 +1726,17 @@ window.addEventListener('load', async function(){
       var el=document.getElementById(id); if(!el)return;
       Array.from(el.options).forEach(function(o){if(o.value===mesAtual)o.selected=true;});
     });
-    await carregarRefs();
-    await Promise.all([
-      carregarHcp(),carregarFaltas(),carregarCalendario(),
-      carregarTreinamentos(),carregarAdmissoes(),
-      carregarDesligamentos(),carregarColaboradores()
-    ]);
-    await atualizarContadores();
+    try{ await carregarRefs(); }catch(e){ console.warn('carregarRefs',e); }
+    try{ await carregarHcp(); }catch(e){ console.warn('carregarHcp',e); }
+    try{ await carregarFaltas(); }catch(e){ console.warn('carregarFaltas',e); }
+    try{ await carregarCalendario(); }catch(e){ console.warn('carregarCalendario',e); }
+    try{ await carregarTreinamentos(); }catch(e){ console.warn('carregarTreinamentos',e); }
+    try{ await carregarAdmissoes(); }catch(e){ console.warn('carregarAdmissoes',e); }
+    try{ await carregarDesligamentos(); }catch(e){ console.warn('carregarDesligamentos',e); }
+    try{ await carregarColaboradores(); }catch(e){ console.warn('carregarColaboradores',e); }
+    try{ await atualizarContadores(); }catch(e){ console.warn('atualizarContadores',e); }
   }catch(e){
-    console.error(e);
+    console.error('INIT',e);
     window.location.href='./login.html';
   }
 });
