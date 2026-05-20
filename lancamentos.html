@@ -557,13 +557,14 @@ async function importarHcp(input){
           observacao:String(r['Observação']||'').trim()||null
         });
       });
-      if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
+      if(erros.length){toast(erros.length+' linha(s) com erro: '+erros.slice(0,5).join(' | ')+(erros.length>5?' e mais '+(erros.length-5)+'...':''),'err');return;}
       if(!payload.length){toast('Nenhum dado válido.','err');return;}
       toast('Importando '+payload.length+' registros...','');
-      var lote=50;
-      for(var i=0;i<payload.length;i+=lote){
-        var res=await db.from('hcp_vagas').insert(payload.slice(i,i+lote));
-        if(res.error){toast('Erro no lote: '+res.error.message,'err');input.value='';return;}
+      toast('Salvando '+payload.length+' registros...','');
+      var tamLote=500;
+      for(var i=0;i<payload.length;i+=tamLote){
+        var res=await db.from('hcp_vagas').insert(payload.slice(i,i+tamLote));
+        if(res.error){toast('Erro: '+res.error.message,'err');input.value='';return;}
       }
       toast(payload.length+' vagas importadas!','ok');
       carregarHcp();atualizarContadores();
@@ -641,7 +642,7 @@ async function importarDepartamentos(input){
           status_departamento:String(r['Status (ATIVO ou INATIVO)']||'ATIVO').trim().toUpperCase()||'ATIVO'
         });
       });
-      if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
+      if(erros.length){toast(erros.length+' linha(s) com erro: '+erros.slice(0,5).join(' | ')+(erros.length>5?' e mais '+(erros.length-5)+'...':''),'err');return;}
       if(!payload.length){toast('Nenhum dado válido.','err');return;}
       toast('Importando '+payload.length+' departamentos...','');
       var res=await db.from('departamentos').insert(payload);
