@@ -455,7 +455,8 @@ function tabAbs(t){document.getElementById('painel-falta').style.display=t==='fa
 function tabMeta(t){['hcp','abs','turn','tre'].forEach(function(k){document.getElementById('meta-'+k).style.display=k===t?'':'none';document.getElementById('tm-'+k).classList.toggle('on',k===t);});}
 function toggleCid(){var v=document.getElementById('abs-status').value==='JUSTIFICADA';document.getElementById('cid-campo').style.display=v?'':'none';document.getElementById('cid-det-campo').style.display=v?'':'none';}
 function limpar(p){document.querySelectorAll('[id^="'+p+'-"]').forEach(function(e){if(e.tagName==='INPUT'||e.tagName==='TEXTAREA')e.value='';if(e.tagName==='SELECT')e.selectedIndex=0;});var i=document.getElementById('abs-info');if(i)i.style.display='none';}
-async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome'),db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala'),db.from('regioes').select('id,sigla').eq('ativo',true).order('sigla'),db.from('departamentos').select('nome_departamento,status_departamento').order('nome_departamento').limit(300),db.from('cid').select('codigo,descricao').order('codigo')]);var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+H(d.nome_departamento)+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto','abs-depto'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;
+async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome'),db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala'),db.from('regioes').select('id,sigla').eq('ativo',true).order('sigla'),db.from('departamentos').select('nome_departamento,status_departamento').order('nome_departamento').limit(300),db.from('cid').select('codigo,descricao').order('codigo')]);_coordsCache=r[0].data||[];_escalasCache=r[1].data||[];
+var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+H(d.nome_departamento)+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto','abs-depto'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;
   }
 var _buscaTmr=null;
 async function buscarColab(){clearTimeout(_buscaTmr);_buscaTmr=setTimeout(async function(){var mat=document.getElementById('abs-mat').value.trim();var box=document.getElementById('abs-info');if(mat.length<3){box.style.display='none';return;}var res=await db.from('colaboradores').select('nome,cargo,escala_id,regional_id,coordenador_id').eq('matricula',mat).maybeSingle();var data=res.data;if(data){document.getElementById('abs-info-nome').textContent=data.nome;document.getElementById('abs-info-cargo').textContent=' · '+(data.cargo||'');box.style.display='';if(data.regional_id){var rEl=document.getElementById('abs-regional');if(rEl)rEl.value=data.regional_id;}if(data.coordenador_id){var cEl=document.getElementById('abs-coord');if(cEl)cEl.value=data.coordenador_id;}if(data.escala_id){var eEl=document.getElementById('abs-escala');if(eEl)eEl.value=data.escala_id;}}else{box.style.display='none';}},400);}
@@ -557,7 +558,7 @@ function filtrarHcp(){
   renderHcp();
 }
 var _hcpBusca='';
-var _absCache=[];var _absBusca='';var _absFiltroMes='';var _absFiltroAno='';var _absOrdem={col:'ano',asc:false};
+var _absCache=[];var _absBusca='';var _coordsCache=[];var _escalasCache=[];var _absFiltroMes='';var _absFiltroAno='';var _absOrdem={col:'ano',asc:false};
 async function carregarFaltas(){
   var res=await db.from('faltas').select('id,ano,mes,data_inicio_falta,data_final_falta,matricula,regional_id,coordenador_id,status_falta,cid,detalhe_cid,escala_id,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('ano',{ascending:false});
   if(res.error){console.warn('faltas erro',res.error);return;}
@@ -677,9 +678,26 @@ async function importarAbs(input){
         var dtFim=parseDtImport(r['Data Final Falta*']||r['Data Final Falta']||r['Dt. Final Falta']);
         if(dtIni==='INVALIDA'){erros.push('Linha '+(i+2)+': Data Início inválida');return;}
         if(dtFim==='INVALIDA'){erros.push('Linha '+(i+2)+': Data Final inválida');return;}
+        // Mapear regional por sigla
+        var regSigla=String(r['Regional (sigla)']||r['Regional']||'').trim().toUpperCase();
+        var mapReg={'PE':1,'SP':2,'ADM':3};
+        var regId=mapReg[regSigla]||null;
+        // Mapear coordenador por nome
+        var coordNome=String(r['Coordenador (nome)']||r['Coordenador']||'').trim();
+        var coordObj=_coordsCache?_coordsCache.find(function(x){return x.nome.toUpperCase()===coordNome.toUpperCase();}):null;
+        var coordId=coordObj?coordObj.id:null;
+        // Mapear escala por código
+        var escCod=String(r['Escala (código)']||r['Escala']||'').trim().toUpperCase();
+        var escObj=_escalasCache?_escalasCache.find(function(x){return x.codigo_escala.toUpperCase()===escCod.toUpperCase();}):null;
+        var escId=escObj?escObj.id:null;
         payload.push({
-          ano:ano,mes:mes,matricula:mat,status_falta:status,
+          ano:ano,mes:mes,matricula:String(mat),status_falta:status,
           data_inicio_falta:dtIni,data_final_falta:dtFim,
+          regional_id:regId,
+          coordenador_id:coordId,
+          departamento:String(r['Departamento']||'').trim()||null,
+          nome_colaborador:String(r['Nome do Colaborador']||'').trim()||null,
+          escala_id:escId,
           cid:String(r['CID']||'').trim()||null,
           detalhe_cid:String(r['Detalhe do CID']||r['Detalhe CID']||'').trim()||null
         });
