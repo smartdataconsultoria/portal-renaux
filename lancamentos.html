@@ -922,7 +922,8 @@ var usr = null;
 
 // ── UTILS ─────────────────────────────────────────────────────────
 function toast(msg, tipo){ var el=document.getElementById('toast'); el.textContent=msg; el.className='show '+(tipo||''); clearTimeout(el._t); el._t=setTimeout(function(){el.className=''},3200); }
-function esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+const esc = function(str){try{return String(str ?? '').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/\"/g,'\"');}catch(e){console.error('esc erro:',e);return str;}};
+function safe(v){return (typeof esc==='function')?esc(v):(v??'');}
 function fmtDate(d){ if(!d)return '—'; var p=d.split('T')[0].split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
 function setBtnLoading(id,v){ var b=document.getElementById(id); if(b){b.disabled=v;b.textContent=v?'Salvando...':b.getAttribute('data-label')||b.textContent.replace('Salvando...','').trim()||'Salvar';} }
 
