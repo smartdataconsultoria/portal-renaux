@@ -546,8 +546,9 @@ function filtrarCol(){
   setTimeout(sincScrollCol,100);
   document.getElementById('tbody-col').innerHTML=dados.length?dados.map(function(r){
     var bdg=r.situacao==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">DESLIGADO</span>';
-    var mat=r.matricula.replace(/\\/g,'\\').replace(/'/g,"\'");
-    return '<tr style="cursor:pointer" onclick="editarCol(\\'+mat+\\')">'
+    var bdg=r.situacao==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">DESLIGADO</span>';
+    var idx=_colCache.indexOf(r);
+    return '<tr style="cursor:pointer" onclick="editarColPorIndice('+idx+')">'
       +'<td>'+H(r.matricula)+'</td>'
       +'<td>'+H(r.nome)+'</td>'
       +'<td>'+H(r.cargo||'—')+'</td>'
@@ -556,9 +557,30 @@ function filtrarCol(){
       +'<td>'+H(r.data_admissao?fmtD(r.data_admissao):'—')+'</td>'
       +'<td>'+H(r.data_desligamento?fmtD(r.data_desligamento):'—')+'</td>'
       +'<td>'+bdg+'</td>'
-      +'<td><button class="btn-del" onclick="event.stopPropagation();del(\'colaboradores\',\''+mat+'\',carregarColaboradores,true)">🗑</button></td>'
+      +'<td><button class="btn-del" onclick="event.stopPropagation();delColPorIndice('+idx+')">🗑</button></td>'
       +'</tr>';
   }).join(''):'<tr><td colspan="9" class="empty">Nenhum colaborador encontrado.</td></tr>';
+}
+function editarColPorIndice(idx){var r=_colCache[idx];if(!r)return;editarCol(r);}
+function delColPorIndice(idx){var r=_colCache[idx];if(!r)return;if(!confirm('Excluir este colaborador?'))return;db.from('colaboradores').delete().eq('matricula',r.matricula).then(function(res){if(res.error){toast('Erro ao excluir.','err');}else{toast('Excluído.','ok');carregarColaboradores();}});}
+function editarCol(r){
+  if(typeof r==='string'){r=_colCache.find(function(c){return c.matricula===r;});}
+  if(!r)return;
+  document.getElementById('col-matricula').value=r.matricula||'';
+  document.getElementById('col-nome').value=r.nome||'';
+  document.getElementById('col-cpf').value=r.cpf||'';
+  document.getElementById('col-cargo').value=r.cargo||'';
+  document.getElementById('col-estado').value=r.estado_departamento||'';
+  document.getElementById('col-admissao').value=r.data_admissao||'';
+  document.getElementById('col-desligamento').value=r.data_desligamento||'';
+  document.getElementById('col-motivo-adm').value=r.motivo_admissao||'';
+  document.getElementById('col-motivo-dem').value=r.motivo_demissao||'';
+  document.getElementById('col-situacao').value=r.situacao||'ATIVO';
+  var btn=document.getElementById('btn-col');
+  btn.textContent='Atualizar Colaborador';
+  btn.setAttribute('data-lbl','Atualizar Colaborador');
+  document.getElementById('mod-colaboradores').scrollIntoView({behavior:'smooth'});
+  toast('Colaborador carregado. Edite e clique em Atualizar.','');
 }
 function sortCol(col){if(_colOrdem.col===col){_colOrdem.asc=!_colOrdem.asc;}else{_colOrdem.col=col;_colOrdem.asc=true;}filtrarCol();}
 function exportarCol(){
@@ -585,24 +607,7 @@ function sincScrollCol(){
   top.onscroll=function(){wrap.scrollLeft=top.scrollLeft;};
   wrap.onscroll=function(){top.scrollLeft=wrap.scrollLeft;};
 }
-function editarCol(mat){
-  var r=_colCache.find(function(c){return c.matricula===mat;});if(!r)return;
-  document.getElementById('col-matricula').value=r.matricula||'';
-  document.getElementById('col-nome').value=r.nome||'';
-  document.getElementById('col-cpf').value=r.cpf||'';
-  document.getElementById('col-cargo').value=r.cargo||'';
-  document.getElementById('col-estado').value=r.estado_departamento||'';
-  document.getElementById('col-admissao').value=r.data_admissao||'';
-  document.getElementById('col-desligamento').value=r.data_desligamento||'';
-  document.getElementById('col-motivo-adm').value=r.motivo_admissao||'';
-  document.getElementById('col-motivo-dem').value=r.motivo_demissao||'';
-  document.getElementById('col-situacao').value=r.situacao||'ATIVO';
-  var btn=document.getElementById('btn-col');
-  btn.textContent='Atualizar Colaborador';
-  btn.setAttribute('data-lbl','Atualizar Colaborador');
-  document.getElementById('mod-colaboradores').scrollIntoView({behavior:'smooth'});
-  toast('Colaborador carregado. Edite e clique em Atualizar.','');
-}
+
 function validarData(input){
   if(!input.value){input.classList.remove('campo-erro');return true;}
   var d=new Date(input.value);
