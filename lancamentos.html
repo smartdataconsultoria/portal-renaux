@@ -195,18 +195,17 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
           <div class="card-title">Novo Colaborador</div>
           <div class="grid g3">
             <div class="f"><label>Matrícula *</label><input type="text" id="col-matricula" placeholder="Ex: 251832"></div>
-            <div class="f"><label>Nome Completo *</label><input type="text" id="col-nome"></div>
-            <div class="f"><label>CPF</label><input type="text" id="col-cpf" placeholder="000.000.000-00"></div>
-            <div class="f"><label>Cargo</label><input type="text" id="col-cargo"></div>
-            <div class="f"><label>Departamento</label><select id="col-depto"><option value="">Selecione...</option></select></div>
-            <div class="f"><label>Estado Depto</label><input type="text" id="col-estado" placeholder="Ex: PE"></div>
             <div class="f"><label>Regional</label><select id="col-regional"><option value="">Selecione...</option></select></div>
             <div class="f"><label>Coordenador</label><select id="col-coord"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Departamento</label><select id="col-depto"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Nome Completo *</label><input type="text" id="col-nome"></div>
+            <div class="f"><label>Cargo</label><input type="text" id="col-cargo"></div>
             <div class="f"><label>Escala</label><select id="col-escala"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Horário</label><input type="text" id="col-horario" placeholder="Ex: 07:00 às 17:00"></div>
             <div class="f"><label>Data de Admissão</label><input type="date" id="col-admissao" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
-            <div class="f"><label>Data de Desligamento</label><input type="date" id="col-desligamento" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
-            <div class="f"><label>Situação</label><select id="col-situacao"><option value="ATIVO">ATIVO</option><option value="DESLIGADO">DESLIGADO</option></select></div>
             <div class="f"><label>Motivo Admissão</label><input type="text" id="col-motivo-adm"></div>
+            <div class="f"><label>Situação</label><select id="col-situacao"><option value="ATIVO">ATIVO</option><option value="DESLIGADO">DESLIGADO</option></select></div>
+            <div class="f"><label>Data de Desligamento</label><input type="date" id="col-desligamento" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
             <div class="f"><label>Motivo Demissão</label><input type="text" id="col-motivo-dem"></div>
           </div>
           <div class="actions">
@@ -229,13 +228,18 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
           <div id="col-tbl-wrap" style="overflow-x:auto"><table>
             <thead><tr>
               <th onclick="sortCol('matricula')" style="cursor:pointer">Matrícula ↕</th>
+              <th onclick="sortCol('regional')" style="cursor:pointer">Regional ↕</th>
+              <th onclick="sortCol('coordenador')" style="cursor:pointer">Coordenador ↕</th>
+              <th onclick="sortCol('departamento')" style="cursor:pointer">Departamento ↕</th>
               <th onclick="sortCol('nome')" style="cursor:pointer">Nome ↕</th>
               <th onclick="sortCol('cargo')" style="cursor:pointer">Cargo ↕</th>
-              <th onclick="sortCol('departamento')" style="cursor:pointer">Departamento ↕</th>
-              <th>Estado</th>
+              <th>Escala</th>
+              <th>Horário</th>
               <th onclick="sortCol('data_admissao')" style="cursor:pointer">Admissão ↕</th>
-              <th onclick="sortCol('data_desligamento')" style="cursor:pointer">Desligamento ↕</th>
+              <th>Motivo Admissão</th>
               <th onclick="sortCol('situacao')" style="cursor:pointer">Situação ↕</th>
+              <th onclick="sortCol('data_desligamento')" style="cursor:pointer">Desligamento ↕</th>
+              <th>Motivo Demissão</th>
               <th></th>
             </tr></thead>
             <tbody id="tbody-col"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
@@ -727,7 +731,7 @@ async function importarAbs(input){
 async function carregarCalendario(){var res=await db.from('calendario_dias_uteis').select('id,ano,mes,qtd_dias,escala:escala_id(codigo_escala)').order('ano',{ascending:false}).limit(60);var rows=res.data||[];document.getElementById('tbody-cal').innerHTML=rows.length?rows.map(function(r){return '<tr><td>'+r.ano+'</td><td>'+H(r.mes)+'</td><td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td><td>'+r.qtd_dias+'</td><td><button class="btn-del" onclick="del(\'calendario_dias_uteis\','+r.id+',carregarCalendario)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="5" class="empty">Nenhum registro.</td></tr>';}
 var _colCache=[];var _colFiltro='TODOS';var _colBusca='';var _colOrdem={col:'nome',asc:true};
 async function carregarColaboradores(){
-  var res=await db.from('colaboradores').select('matricula,nome,cargo,situacao,cpf,departamento,estado_departamento,data_admissao,data_desligamento,motivo_admissao,motivo_demissao').order('nome');
+  var res=await db.from('colaboradores').select('matricula,nome,cargo,situacao,departamento,estado_departamento,data_admissao,data_desligamento,motivo_admissao,motivo_demissao,horario,regional_id,coordenador_id,escala_id,departamento_id,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('nome');
   if(res.error){console.warn('col erro',res.error);return;}
   _colCache=res.data||[];
   filtrarCol();
@@ -752,16 +756,21 @@ function filtrarCol(){
     var idx=_colCache.indexOf(r);
     return '<tr style="cursor:pointer" onclick="editarColPorIndice('+idx+')">'
       +'<td>'+H(r.matricula)+'</td>'
-      +'<td>'+H(r.nome)+'</td>'
-      +'<td>'+H(r.cargo||'—')+'</td>'
+      +'<td>'+H(r.regional?r.regional.sigla:'—')+'</td>'
+      +'<td>'+H(r.coordenador?r.coordenador.nome:'—')+'</td>'
       +'<td>'+H(r.departamento||'—')+'</td>'
-      +'<td>'+H(r.estado_departamento||'—')+'</td>'
+      +'<td>'+H(r.nome||'—')+'</td>'
+      +'<td>'+H(r.cargo||'—')+'</td>'
+      +'<td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td>'
+      +'<td>'+H(r.horario||'—')+'</td>'
       +'<td>'+H(r.data_admissao?fmtD(r.data_admissao):'—')+'</td>'
-      +'<td>'+H(r.data_desligamento?fmtD(r.data_desligamento):'—')+'</td>'
+      +'<td>'+H(r.motivo_admissao||'—')+'</td>'
       +'<td>'+bdg+'</td>'
+      +'<td>'+H(r.data_desligamento?fmtD(r.data_desligamento):'—')+'</td>'
+      +'<td>'+H(r.motivo_demissao||'—')+'</td>'
       +'<td><button class="btn-del" onclick="event.stopPropagation();delColPorIndice('+idx+')">🗑</button></td>'
       +'</tr>';
-  }).join(''):'<tr><td colspan="9" class="empty">Nenhum colaborador encontrado.</td></tr>';
+  }).join(''):'<tr><td colspan="14" class="empty">Nenhum colaborador encontrado.</td></tr>';
 }
 function editarColPorIndice(idx){var r=_colCache[idx];if(!r)return;editarCol(r);}
 function delColPorIndice(idx){var r=_colCache[idx];if(!r)return;if(!confirm('Excluir este colaborador?'))return;db.from('colaboradores').delete().eq('matricula',r.matricula).then(function(res){if(res.error){toast('Erro ao excluir.','err');}else{toast('Excluído.','ok');carregarColaboradores();}});}
@@ -770,14 +779,17 @@ function editarCol(r){
   if(!r)return;
   document.getElementById('col-matricula').value=r.matricula||'';
   document.getElementById('col-nome').value=r.nome||'';
-  document.getElementById('col-cpf').value=r.cpf||'';
   document.getElementById('col-cargo').value=r.cargo||'';
-  document.getElementById('col-estado').value=r.estado_departamento||'';
+  document.getElementById('col-horario').value=r.horario||'';
   document.getElementById('col-admissao').value=r.data_admissao||'';
   document.getElementById('col-desligamento').value=r.data_desligamento||'';
   document.getElementById('col-motivo-adm').value=r.motivo_admissao||'';
   document.getElementById('col-motivo-dem').value=r.motivo_demissao||'';
   document.getElementById('col-situacao').value=r.situacao||'ATIVO';
+  if(r.regional_id){var rEl=document.getElementById('col-regional');if(rEl)rEl.value=r.regional_id;}
+  if(r.coordenador_id){var cEl=document.getElementById('col-coord');if(cEl)cEl.value=r.coordenador_id;}
+  if(r.escala_id){var eEl=document.getElementById('col-escala');if(eEl)eEl.value=r.escala_id;}
+  if(r.departamento_id){var dEl=document.getElementById('col-depto');if(dEl)dEl.value=r.departamento_id;}
   var btn=document.getElementById('btn-col');
   btn.textContent='Atualizar Colaborador';
   btn.setAttribute('data-lbl','Atualizar Colaborador');
@@ -793,7 +805,7 @@ function exportarCol(){
     return true;
   });
   if(!dados.length){toast('Nenhum dado.','err');return;}
-  var rows=dados.map(function(r){return{'Matrícula':r.matricula,'Nome':r.nome,'Cargo':r.cargo||'','Departamento':r.departamento||'','Estado':r.estado_departamento||'','Admissão':r.data_admissao||'','Desligamento':r.data_desligamento||'','Situação':r.situacao,'Motivo Admissão':r.motivo_admissao||'','Motivo Demissão':r.motivo_demissao||''};});
+  var rows=dados.map(function(r){return{'Matrícula':r.matricula,'Regional':r.regional?r.regional.sigla:'','Coordenador':r.coordenador?r.coordenador.nome:'','Departamento':r.departamento||'','Nome':r.nome||'','Cargo':r.cargo||'','Escala':r.escala?r.escala.codigo_escala:'','Horário':r.horario||'','Admissão':r.data_admissao||'','Motivo Admissão':r.motivo_admissao||'','Situação':r.situacao,'Desligamento':r.data_desligamento||'','Motivo Demissão':r.motivo_demissao||''};});
   var ws=window.XLSX.utils.json_to_sheet(rows);
   ws['!cols']=[{wch:12},{wch:32},{wch:28},{wch:30},{wch:10},{wch:14},{wch:14},{wch:12},{wch:22},{wch:22}];
   var wb=window.XLSX.utils.book_new();
@@ -997,7 +1009,7 @@ async function salvarFalta(){
   else{toast('Falta salva!','ok');limpar('abs');carregarFaltas();atualizarContadores();}
 }
 async function salvarCalendario(){var mes=document.getElementById('cal-mes').value;var ano=parseInt(document.getElementById('cal-ano').value);var escId=parseInt(document.getElementById('cal-escala').value);var dias=parseInt(document.getElementById('cal-dias').value);if(!mes||!ano||!escId||!dias){toast('Preencha todos os campos.','err');return;}var res=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:escId,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Salvo!','ok');document.getElementById('cal-mes').selectedIndex=0;document.getElementById('cal-dias').value='';carregarCalendario();}}
-async function salvarColaborador(){var mat=document.getElementById('col-matricula').value.trim();var nome=document.getElementById('col-nome').value.trim();if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}setBtnLoad('btn-col',true);var res=await db.from('colaboradores').upsert({matricula:mat,nome:nome,cpf:document.getElementById('col-cpf').value||null,cargo:document.getElementById('col-cargo').value||null,departamento_id:parseInt(document.getElementById('col-depto').value)||null,estado_departamento:document.getElementById('col-estado').value||null,regional_id:parseInt(document.getElementById('col-regional').value)||null,coordenador_id:parseInt(document.getElementById('col-coord').value)||null,escala_id:parseInt(document.getElementById('col-escala').value)||null,data_admissao:document.getElementById('col-admissao').value||null,data_desligamento:document.getElementById('col-desligamento').value||null,situacao:document.getElementById('col-situacao').value||'ATIVO',motivo_admissao:document.getElementById('col-motivo-adm').value||null,motivo_demissao:document.getElementById('col-motivo-dem').value||null},{onConflict:'matricula'});setBtnLoad('btn-col',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Colaborador salvo!','ok');limpar('col');var btn=document.getElementById('btn-col');btn.textContent='Salvar Colaborador';btn.setAttribute('data-lbl','Salvar Colaborador');carregarColaboradores();atualizarContadores();}}
+async function salvarColaborador(){var mat=document.getElementById('col-matricula').value.trim();var nome=document.getElementById('col-nome').value.trim();if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}setBtnLoad('btn-col',true);var res=await db.from('colaboradores').upsert({matricula:mat,nome:nome,cargo:document.getElementById('col-cargo').value||null,horario:document.getElementById('col-horario').value||null,departamento_id:parseInt(document.getElementById('col-depto').value)||null,regional_id:parseInt(document.getElementById('col-regional').value)||null,coordenador_id:parseInt(document.getElementById('col-coord').value)||null,escala_id:parseInt(document.getElementById('col-escala').value)||null,data_admissao:document.getElementById('col-admissao').value||null,data_desligamento:document.getElementById('col-desligamento').value||null,situacao:document.getElementById('col-situacao').value||'ATIVO',motivo_admissao:document.getElementById('col-motivo-adm').value||null,motivo_demissao:document.getElementById('col-motivo-dem').value||null},{onConflict:'matricula'});setBtnLoad('btn-col',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Colaborador salvo!','ok');limpar('col');var btn=document.getElementById('btn-col');btn.textContent='Salvar Colaborador';btn.setAttribute('data-lbl','Salvar Colaborador');carregarColaboradores();atualizarContadores();}}
 async function salvarMeta(tipo){var map={hcp:{p:'mhcp',tb:'metas_hcp'},abs:{p:'mabs',tb:'metas_absenteismo'},turn:{p:'mturn',tb:'metas_turnover'},tre:{p:'mtre',tb:'metas_treinamento'}};var cfg=map[tipo];if(!cfg)return;var mes=document.getElementById(cfg.p+'-mes').value;var ano=parseInt(document.getElementById(cfg.p+'-ano').value);if(!mes||!ano){toast('Preencha Mês e Ano.','err');return;}var payload={ano:ano,mes:mes};if(tipo==='tre'){payload.qtd_treinamentos_esperados=parseInt(document.getElementById('mtre-qtd').value)||8;payload.meta_alcance=parseFloat(document.getElementById('mtre-meta').value)||0.9;}else{payload.meta=parseFloat(document.getElementById(cfg.p+'-meta').value)||0;}var res=await db.from(cfg.tb).upsert(payload,{onConflict:'ano,mes'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Meta salva!','ok');}}
 async function del(tabela,id,cb,isText){if(!confirm('Excluir este registro?'))return;var q=db.from(tabela).delete();var res=await (isText?q.eq('matricula',id):q.eq('id',id));if(res.error){toast('Erro ao excluir.','err');}else{toast('Excluído.','ok');cb();}}
 
