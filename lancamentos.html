@@ -155,9 +155,32 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               <div class="tbl-cnt" id="cnt-hcp-tbl">0 registros</div>
             </div>
           </div>
+          <div style="padding:12px 20px;border-bottom:1px solid var(--navy-border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <select id="hcp-filtro-mes" onchange="filtrarHcp()" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none">
+              <option value="">Todos os meses</option>
+              <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option>
+              <option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option>
+              <option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+            </select>
+            <input type="number" id="hcp-filtro-ano" placeholder="Ano" onchange="filtrarHcp()" min="2020" max="2030" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none;width:90px">
+            <button onclick="_hcpFiltroMes='';_hcpFiltroAno='';document.getElementById('hcp-filtro-mes').value='';document.getElementById('hcp-filtro-ano').value='';renderHcp()" style="background:transparent;border:1px solid var(--navy-border);border-radius:7px;color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;">Limpar filtro</button>
+          </div>
           <div style="overflow-x:auto"><table>
-            <thead><tr><th>Mês/Ano</th><th>ID PVE</th><th>Motivo</th><th>Departamento</th><th>Regional</th><th>Coordenador</th><th>Função</th><th>Incluído</th><th>Liberado</th><th></th></tr></thead>
-            <tbody id="tbody-hcp"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
+            <thead><tr>
+              <th onclick="sortHcp('periodo_mes')" style="cursor:pointer;white-space:nowrap">Mês ↕</th>
+              <th onclick="sortHcp('periodo_ano')" style="cursor:pointer">Ano ↕</th>
+              <th onclick="sortHcp('id_pve')" style="cursor:pointer">ID PVE ↕</th>
+              <th>Incluído em</th><th>Liberado em</th><th>Dt. Necessidade</th>
+              <th>Dt. Assinatura</th><th>Dt. Início</th>
+              <th onclick="sortHcp('motivo')" style="cursor:pointer">Motivo ↕</th>
+              <th>Func. Substituído</th><th>Func. Contratado</th>
+              <th onclick="sortHcp('departamento')" style="cursor:pointer">Departamento ↕</th>
+              <th onclick="sortHcp('regional')" style="cursor:pointer">Regional ↕</th>
+              <th onclick="sortHcp('coordenador')" style="cursor:pointer">Coordenador ↕</th>
+              <th onclick="sortHcp('funcao')" style="cursor:pointer">Função ↕</th>
+              <th>Observação</th>
+            </tr></thead>
+            <tbody id="tbody-hcp"><tr><td colspan="16" class="empty">Carregando...</td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -386,24 +409,60 @@ async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').
 var _buscaTmr=null;
 async function buscarColab(){clearTimeout(_buscaTmr);_buscaTmr=setTimeout(async function(){var mat=document.getElementById('abs-mat').value.trim();var box=document.getElementById('abs-info');if(mat.length<3){box.style.display='none';return;}var res=await db.from('colaboradores').select('nome,cargo,escala_id,regional_id,coordenador_id').eq('matricula',mat).maybeSingle();var data=res.data;if(data){document.getElementById('abs-info-nome').textContent=data.nome;document.getElementById('abs-info-cargo').textContent=' · '+(data.cargo||'');box.style.display='';if(data.regional_id){var rEl=document.getElementById('abs-regional');if(rEl)rEl.value=data.regional_id;}if(data.coordenador_id){var cEl=document.getElementById('abs-coord');if(cEl)cEl.value=data.coordenador_id;}if(data.escala_id){var eEl=document.getElementById('abs-escala');if(eEl)eEl.value=data.escala_id;}}else{box.style.display='none';}},400);}
 async function atualizarContadores(){var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();var ano=new Date().getFullYear();var r=await Promise.all([db.from('hcp_vagas').select('id',{count:'exact',head:true}).eq('periodo_ano',ano).eq('periodo_mes',mes),db.from('faltas').select('id',{count:'exact',head:true}).eq('ano',ano).eq('mes',mes),db.from('colaboradores').select('matricula',{count:'exact',head:true}).eq('situacao','ATIVO')]);document.getElementById('cnt-hcp').textContent=r[0].count||0;document.getElementById('cnt-abs').textContent=r[1].count||0;document.getElementById('cnt-colab').textContent=r[2].count||0;}
+var _hcpCache=[];
+var _hcpFiltroMes='';
+var _hcpFiltroAno='';
+var _hcpOrdem={col:'periodo_ano',asc:false};
+
 async function carregarHcp(){
-  var res=await db.from('hcp_vagas').select('periodo_mes,periodo_ano,id_pve,motivo,departamento,regional,coordenador,funcao,incluido_em,liberado_em').order('periodo_ano',{ascending:false}).order('periodo_mes',{ascending:false});
+  var res=await db.from('hcp_vagas').select('periodo_mes,periodo_ano,id_pve,incluido_em,liberado_em,data_necessidade,data_assinatura_contrato,data_inicio_contrato,motivo,funcionario_substituido,funcionario_contratatado,departamento,regional,coordenador,funcao,observacao').order('periodo_ano',{ascending:false});
   if(res.error){console.warn('hcp erro',res.error);}
-  var rows=res.data||[];
-  document.getElementById('cnt-hcp-tbl').textContent=rows.length+' registros';
-  document.getElementById('tbody-hcp').innerHTML=rows.length?rows.map(function(r){
+  _hcpCache=res.data||[];
+  renderHcp();
+}
+function renderHcp(){
+  var dados=_hcpCache.filter(function(r){
+    if(_hcpFiltroMes&&r.periodo_mes!==_hcpFiltroMes)return false;
+    if(_hcpFiltroAno&&String(r.periodo_ano)!==String(_hcpFiltroAno))return false;
+    return true;
+  });
+  // Ordenar
+  dados.sort(function(a,b){
+    var va=a[_hcpOrdem.col]||'';var vb=b[_hcpOrdem.col]||'';
+    if(va<vb)return _hcpOrdem.asc?-1:1;
+    if(va>vb)return _hcpOrdem.asc?1:-1;
+    return 0;
+  });
+  document.getElementById('cnt-hcp-tbl').textContent=dados.length+' de '+_hcpCache.length+' registros';
+  document.getElementById('tbody-hcp').innerHTML=dados.length?dados.map(function(r){
     return '<tr>'
-      +'<td>'+H(r.periodo_mes||'')+'/'+(r.periodo_ano||'')+'</td>'
+      +'<td>'+H(r.periodo_mes||'—')+'</td>'
+      +'<td>'+H(r.periodo_ano||'—')+'</td>'
       +'<td>'+H(r.id_pve||'—')+'</td>'
+      +'<td>'+fmtD(r.incluido_em)+'</td>'
+      +'<td>'+fmtD(r.liberado_em)+'</td>'
+      +'<td>'+fmtD(r.data_necessidade)+'</td>'
+      +'<td>'+fmtD(r.data_assinatura_contrato)+'</td>'
+      +'<td>'+fmtD(r.data_inicio_contrato)+'</td>'
       +'<td>'+H(r.motivo||'—')+'</td>'
+      +'<td>'+H(r.funcionario_substituido||'—')+'</td>'
+      +'<td>'+H(r.funcionario_contratatado||'—')+'</td>'
       +'<td>'+H(r.departamento||'—')+'</td>'
       +'<td>'+H(r.regional||'—')+'</td>'
       +'<td>'+H(r.coordenador||'—')+'</td>'
       +'<td>'+H(r.funcao||'—')+'</td>'
-      +'<td>'+fmtD(r.incluido_em)+'</td>'
-      +'<td>'+fmtD(r.liberado_em)+'</td>'
+      +'<td>'+H(r.observacao||'—')+'</td>'
       +'</tr>';
-  }).join(''):'<tr><td colspan="10" class="empty">Nenhum registro.</td></tr>';
+  }).join(''):'<tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>';
+}
+function sortHcp(col){
+  if(_hcpOrdem.col===col){_hcpOrdem.asc=!_hcpOrdem.asc;}else{_hcpOrdem.col=col;_hcpOrdem.asc=true;}
+  renderHcp();
+}
+function filtrarHcp(){
+  _hcpFiltroMes=document.getElementById('hcp-filtro-mes').value;
+  _hcpFiltroAno=document.getElementById('hcp-filtro-ano').value;
+  renderHcp();
 }
 async function carregarFaltas(){var res=await db.from('faltas').select('id,mes,ano,matricula,data_inicio_falta,data_final_falta,status_falta,cid').order('criado_em',{ascending:false}).limit(100);var rows=res.data||[];document.getElementById('cnt-abs-tbl').textContent=rows.length+' registros';document.getElementById('tbody-abs').innerHTML=rows.length?rows.map(function(r){var bc=r.status_falta==='JUSTIFICADA'?'bdg-w':r.status_falta==='INJUSTIFICADA'?'bdg-r':'bdg-gold';return '<tr><td>'+H(r.mes||'')+'/'+(r.ano||'')+'</td><td>'+H(r.matricula)+'</td><td>'+fmtD(r.data_inicio_falta)+'</td><td>'+fmtD(r.data_final_falta)+'</td><td><span class="bdg '+bc+'">'+H(r.status_falta)+'</span></td><td>'+H(r.cid||'—')+'</td><td><button class="btn-del" onclick="del(\'faltas\','+r.id+',carregarFaltas)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="7" class="empty">Nenhum registro.</td></tr>';}
 async function carregarCalendario(){var res=await db.from('calendario_dias_uteis').select('id,ano,mes,qtd_dias,escala:escala_id(codigo_escala)').order('ano',{ascending:false}).limit(60);var rows=res.data||[];document.getElementById('tbody-cal').innerHTML=rows.length?rows.map(function(r){return '<tr><td>'+r.ano+'</td><td>'+H(r.mes)+'</td><td>'+H(r.escala?r.escala.codigo_escala:'—')+'</td><td>'+r.qtd_dias+'</td><td><button class="btn-del" onclick="del(\'calendario_dias_uteis\','+r.id+',carregarCalendario)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="5" class="empty">Nenhum registro.</td></tr>';}
