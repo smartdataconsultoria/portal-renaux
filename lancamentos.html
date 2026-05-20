@@ -916,8 +916,8 @@ var SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
 var SB_RNX  = 'https://jjpnztfpusgtkuolvxvl.supabase.co';
 var SB_RKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqcG56dGZwdXNndGt1b2x2eHZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMzgwOTksImV4cCI6MjA5MzkxNDA5OX0.2Jzr0FIr0_Vi4sncP8mLMDiMb6PvTLcuCw4F7jVklbc';
 
-var sbAuth = supabase.createClient(SB_URL,  SB_KEY);
-var db     = supabase.createClient(SB_RNX,  SB_RKEY);
+var sbAuth = supabase.createClient(SB_URL, SB_KEY);
+var db     = supabase.createClient(SB_RNX, SB_RKEY);
 var usr = null;
 
 // ── UTILS ─────────────────────────────────────────────────────────
@@ -1025,19 +1025,13 @@ async function atualizarContadores(){
   var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();
   var ano=new Date().getFullYear();
   try{
-    var [h,a,t,adm,des,col]=await Promise.all([
+    var [h,a,col]=await Promise.all([
       db.from('hcp_vagas').select('id',{count:'exact'}).eq('periodo_ano',ano).eq('periodo_mes',mes),
       db.from('faltas').select('id',{count:'exact'}).eq('ano',ano).eq('mes',mes),
-      db.from('treinamentos').select('id',{count:'exact'}).eq('ano',ano).eq('mes',mes),
-      db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','ATIVO').gte('data_admissao',ano+'-01-01'),
-      db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','DESLIGADO').gte('data_desligamento',ano+'-01-01'),
       db.from('colaboradores').select('matricula',{count:'exact'}).eq('situacao','ATIVO')
     ]);
     document.getElementById('cnt-hcp').textContent=h.count||0;
     document.getElementById('cnt-absentes').textContent=a.count||0;
-    document.getElementById('cnt-treinamentos').textContent=t.count||0;
-    document.getElementById('cnt-admissoes').textContent=adm.count||0;
-    document.getElementById('cnt-desligamentos').textContent=des.count||0;
     document.getElementById('cnt-colab').textContent=col.count||0;
   }catch(e){}
 }
@@ -1136,7 +1130,7 @@ function filtrarColaboradores(){
   document.getElementById('tbody-colab').innerHTML=dados.map(function(r){
     var depto = r.departamento ? r.departamento.nome_departamento : '—';
     var reg   = r.regional     ? r.regional.sigla                 : '—';
-    var escCod = r.escala ? r.escala.codigo_escala : '—';
+    var esc   = r.escala       ? r.escala.codigo_escala           : '—';
     var badge = r.situacao==='ATIVO'
       ? '<span class="badge badge-green">ATIVO</span>'
       : '<span class="badge badge-red">DESLIGADO</span>';
@@ -1146,7 +1140,7 @@ function filtrarColaboradores(){
       +'<td>'+esc(r.cargo||'—')+'</td>'
       +'<td>'+esc(depto)+'</td>'
       +'<td>'+esc(reg)+'</td>'
-      +'<td>'+esc(escCod)+'</td>'
+      +'<td>'+esc(esc)+'</td>'
       +'<td>'+badge+'</td>'
       +'<td><button class="btn-del" onclick="event.stopPropagation();deletar(\'colaboradores\',\''+esc_js(r.matricula)+'\',carregarColaboradores,true)">🗑</button></td>'
       +'</tr>';
@@ -1242,10 +1236,10 @@ async function salvarFalta(){
 async function salvarCalendario(){
   var mes=document.getElementById('cal-mes').value;
   var ano=parseInt(document.getElementById('cal-ano').value);
-  var escId=parseInt(document.getElementById('cal-escala').value);
+  var esc=parseInt(document.getElementById('cal-escala').value);
   var dias=parseInt(document.getElementById('cal-dias').value);
-  if(!mes||!ano||!escId||!dias){toast('Preencha todos os campos.','err');return;}
-  var {error}=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:escId,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});
+  if(!mes||!ano||!esc||!dias){toast('Preencha todos os campos.','err');return;}
+  var {error}=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:esc,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});
   if(error){toast('Erro: '+error.message,'err');}
   else{toast('Salvo!','ok');document.getElementById('cal-mes').value='';document.getElementById('cal-ano').value='';document.getElementById('cal-escala').value='';document.getElementById('cal-dias').value='';await carregarCalendario();}
 }
