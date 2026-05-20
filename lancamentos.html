@@ -263,16 +263,6 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
           <div class="card-title">Novo Departamento</div>
           <div class="grid g3">
             <div class="f full"><label>Nome do Departamento *</label><input type="text" id="dep-nome" placeholder="Ex: AMBEV RECIFE"></div>
-            <div class="f"><label>Código</label><input type="text" id="dep-codigo" placeholder="Ex: PE-042"></div>
-            <div class="f"><label>Regional</label>
-              <select id="dep-regional">
-                <option value="">Selecione...</option>
-                <option value="1">PE</option>
-                <option value="2">SP</option>
-                <option value="3">ADM</option>
-              </select>
-            </div>
-            <div class="f"><label>Estado</label><input type="text" id="dep-estado" placeholder="Ex: PE, SP, RJ..."></div>
             <div class="f"><label>Status</label>
               <select id="dep-status">
                 <option value="ATIVO">ATIVO</option>
@@ -431,9 +421,6 @@ async function salvarDepartamento(){
   setBtnLoad('btn-dep',true);
   var res=await db.from('departamentos').insert({
     nome_departamento:nome,
-    codigo:document.getElementById('dep-codigo').value.trim().toUpperCase()||null,
-    regional_id:parseInt(document.getElementById('dep-regional').value)||null,
-    estado_departamento:document.getElementById('dep-estado').value.trim().toUpperCase()||null,
     status_departamento:document.getElementById('dep-status').value||'ATIVO'
   });
   setBtnLoad('btn-dep',false);
