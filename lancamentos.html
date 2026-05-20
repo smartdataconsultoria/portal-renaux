@@ -560,7 +560,7 @@ function filtrarHcp(){
 var _hcpBusca='';
 var _absCache=[];var _absBusca='';var _coordsCache=[];var _escalasCache=[];var _absFiltroMes='';var _absFiltroAno='';var _absOrdem={col:'ano',asc:false};
 async function carregarFaltas(){
-  var res=await db.from('faltas').select('id,ano,mes,data_inicio_falta,data_final_falta,matricula,regional_id,coordenador_id,status_falta,cid,detalhe_cid,escala_id,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('ano',{ascending:false});
+  var res=await db.from('faltas').select('id,ano,mes,data_inicio_falta,data_final_falta,matricula,regional_id,coordenador_id,status_falta,cid,detalhe_cid,escala_id,departamento,nome_colaborador,regional:regional_id(sigla),coordenador:coordenador_id(nome),escala:escala_id(codigo_escala)').order('ano',{ascending:false});
   if(res.error){console.warn('faltas erro',res.error);return;}
   _absCache=res.data||[];
   renderAbs();
@@ -569,7 +569,7 @@ function renderAbs(){
   var dados=_absCache.filter(function(r){
     if(_absFiltroMes&&r.mes!==_absFiltroMes)return false;
     if(_absFiltroAno&&String(r.ano)!==String(_absFiltroAno))return false;
-    if(_absBusca){var txt=[r.ano,r.mes,r.matricula,r.status_falta,r.cid,r.detalhe_cid,r.regional?r.regional.sigla:'',r.coordenador?r.coordenador.nome:''].join(' ').toLowerCase();if(!txt.includes(_absBusca))return false;}
+    if(_absBusca){var txt=[r.ano,r.mes,r.matricula,r.status_falta,r.cid,r.detalhe_cid,r.departamento,r.nome_colaborador,r.regional?r.regional.sigla:'',r.coordenador?r.coordenador.nome:''].join(' ').toLowerCase();if(!txt.includes(_absBusca))return false;}
     return true;
   });
   dados.sort(function(a,b){var va=a[_absOrdem.col]||'';var vb=b[_absOrdem.col]||'';if(va<vb)return _absOrdem.asc?-1:1;if(va>vb)return _absOrdem.asc?1:-1;return 0;});
@@ -585,8 +585,8 @@ function renderAbs(){
       +'<td>'+H(r.matricula||'—')+'</td>'
       +'<td>'+H(r.regional?r.regional.sigla:'—')+'</td>'
       +'<td>'+H(r.coordenador?r.coordenador.nome:'—')+'</td>'
-      +'<td>—</td>'
-      +'<td>—</td>'
+      +'<td>'+H(r.departamento||'—')+'</td>'
+      +'<td>'+H(r.nome_colaborador||'—')+'</td>'
       +'<td><span class="bdg '+bc+'">'+H(r.status_falta)+'</span></td>'
       +'<td>'+H(r.cid||'—')+'</td>'
       +'<td>'+H(r.detalhe_cid||'—')+'</td>'
