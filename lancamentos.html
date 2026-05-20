@@ -223,6 +223,9 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               <button class="tab" id="f-desligado" onclick="setFiltro('DESLIGADO')">Desligados</button>
             </div>
             <button onclick="exportarCol()" style="background:rgba(52,201,126,.1);border:1px solid rgba(52,201,126,.25);color:var(--green);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Excel</button>
+            <button onclick="baixarModeloCol()" style="background:rgba(200,146,42,.1);border:1px solid rgba(200,146,42,.28);color:var(--gold);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Modelo</button>
+            <button onclick="document.getElementById('import-col-file').click()" style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.28);color:#7ab3f7;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬆ Importar</button>
+            <input type="file" id="import-col-file" accept=".xlsx,.xls" onchange="importarCol(this)" style="display:none">
           </div>
           <div id="col-scroll-top" style="overflow-x:auto;overflow-y:hidden;height:12px;border-bottom:1px solid var(--navy-border)"><div id="col-scroll-inner" style="height:1px"></div></div>
           <div id="col-tbl-wrap" style="overflow-x:auto"><table>
@@ -812,6 +815,79 @@ function exportarCol(){
   window.XLSX.utils.book_append_sheet(wb,ws,'Colaboradores');
   window.XLSX.writeFile(wb,'Colaboradores_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
   toast('Excel gerado!','ok');
+}
+function baixarModeloCol(){
+  if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
+  var X=window.XLSX;var wb=X.utils.book_new();
+  var ws=X.utils.aoa_to_sheet([
+    ['Matrícula*','Regional (sigla)*','Coordenador (nome)','Departamento','Nome do Colaborador*','Cargo','Escala (código)','Horário','Data de Admissão','Motivo de Admissão','Status (ATIVO ou DESLIGADO)','Data de Desligamento','Motivo de Demissão'],
+    ['241758','PE','ANGÉLICA','BRASILIT FACILITIES - PE','JOSILENE MARIA DOS SANTOS','AUXILIAR DE OPERAÇÃO','5X2','07:00 às 17:00',new Date(2023,2,15),'SUBSTITUIÇÃO','ATIVO','',''],
+    ['251832','SP','ANA GESTORA','AMBEV AGUDOS','PEDRO SILVA','TÉCNICO DE SEGURANÇA','3X3','08:00 às 18:00',new Date(2024,0,10),'CONTRATO NOVO','DESLIGADO',new Date(2024,7,20),'PEDIDO']
+  ]);
+  ['I2','L2','I3','L3'].forEach(function(cell){if(ws[cell]){ws[cell].t='d';ws[cell].z='dd/mm/yyyy';}});
+  ws['!cols']=[{wch:12},{wch:12},{wch:22},{wch:28},{wch:28},{wch:24},{wch:12},{wch:16},{wch:16},{wch:20},{wch:22},{wch:16},{wch:20}];
+  X.utils.book_append_sheet(wb,ws,'Colaboradores');
+  X.writeFile(wb,'Modelo_Colaboradores.xlsx');
+  toast('Modelo baixado!','ok');
+}
+async function importarCol(input){
+  if(!input.files||!input.files[0])return;
+  toast('Lendo planilha...','');
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var wb=window.XLSX.read(e.target.result,{type:'array',cellDates:true,dateNF:'dd/mm/yyyy'});
+      var rows=window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false,dateNF:'dd/mm/yyyy'});
+      if(!rows.length){toast('Planilha vazia.','err');return;}
+      var payload=[];var erros=[];
+      var mapReg={'PE':1,'SP':2,'ADM':3};
+      rows.forEach(function(r,i){
+        var mat=String(r['Matrícula*']||r['Matrícula']||'').trim();
+        var nome=String(r['Nome do Colaborador*']||r['Nome do Colaborador']||r['Nome']||'').trim();
+        var regSigla=String(r['Regional (sigla)*']||r['Regional (sigla)']||r['Regional']||'').trim().toUpperCase();
+        if(!mat||!nome){erros.push('Linha '+(i+2)+': Matrícula e Nome obrigatórios');return;}
+        var regId=mapReg[regSigla]||null;
+        var coordNome=String(r['Coordenador (nome)']||r['Coordenador']||'').trim();
+        var coordObj=_coordsCache.find(function(x){return x.nome.toUpperCase()===coordNome.toUpperCase();});
+        var coordId=coordObj?coordObj.id:null;
+        var escCod=String(r['Escala (código)']||r['Escala']||'').trim().toUpperCase();
+        var escObj=_escalasCache.find(function(x){return x.codigo_escala.toUpperCase()===escCod.toUpperCase();});
+        var escId=escObj?escObj.id:null;
+        var deptoNome=String(r['Departamento']||'').trim();
+        var deptoObj=_deptosCache.find(function(x){return x.nome_departamento.toUpperCase()===deptoNome.toUpperCase();});
+        var deptoId=deptoObj?deptoObj.id:null;
+        var situacao=String(r['Status (ATIVO ou DESLIGADO)']||r['Situação']||r['Situacao']||'ATIVO').trim().toUpperCase();
+        if(!['ATIVO','DESLIGADO'].includes(situacao))situacao='ATIVO';
+        var dtAdm=parseDtImport(r['Data de Admissão']||r['Admissão']);
+        var dtDes=parseDtImport(r['Data de Desligamento']||r['Desligamento']);
+        if(dtAdm==='INVALIDA'){erros.push('Linha '+(i+2)+': Data de Admissão inválida');return;}
+        if(dtDes==='INVALIDA'){erros.push('Linha '+(i+2)+': Data de Desligamento inválida');return;}
+        payload.push({
+          matricula:mat,nome:nome,
+          regional_id:regId,coordenador_id:coordId,
+          departamento:deptoNome||null,departamento_id:deptoId,
+          cargo:String(r['Cargo']||'').trim()||null,
+          escala_id:escId,
+          horario:String(r['Horário']||r['Horario']||'').trim()||null,
+          data_admissao:dtAdm,motivo_admissao:String(r['Motivo de Admissão']||r['Motivo Admissão']||'').trim()||null,
+          situacao:situacao,
+          data_desligamento:dtDes||null,motivo_demissao:String(r['Motivo de Demissão']||r['Motivo Demissão']||'').trim()||null
+        });
+      });
+      if(erros.length){toast(erros.length+' erro(s): '+erros.slice(0,3).join(' | '),'err');return;}
+      if(!payload.length){toast('Nenhum dado válido.','err');return;}
+      toast('Importando '+payload.length+' colaboradores...','');
+      var tamLote=500;
+      for(var i=0;i<payload.length;i+=tamLote){
+        var res=await db.from('colaboradores').upsert(payload.slice(i,i+tamLote),{onConflict:'matricula'});
+        if(res.error){toast('Erro: '+res.error.message,'err');input.value='';return;}
+      }
+      toast(payload.length+' colaboradores importados!','ok');
+      carregarColaboradores();atualizarContadores();
+    }catch(err){toast('Erro: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+  input.value='';
 }
 function sincScrollCol(){
   var top=document.getElementById('col-scroll-top');var wrap=document.getElementById('col-tbl-wrap');
