@@ -77,6 +77,9 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
 #toast.show{opacity:1;transform:translateY(0)}
 #toast.ok{border-color:rgba(52,201,126,.4);color:var(--green)}
 #toast.err{border-color:rgba(224,85,85,.4);color:var(--danger)}
+.f input.campo-erro{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(224,85,85,.15)!important;}
+.f .msg-erro{font-size:10px;color:var(--danger);margin-top:3px;display:none;}
+.f input.campo-erro+.msg-erro,.f input.campo-erro~.msg-erro{display:block;}
 </style>
 </head>
 <body>
@@ -119,11 +122,11 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
             <div class="f"><label>Mês *</label><select id="hcp-mes"></select></div>
             <div class="f"><label>Ano *</label><input type="number" id="hcp-ano" min="2024" max="2030"></div>
             <div class="f"><label>ID PVE</label><input type="text" id="hcp-idpve" placeholder="Ex: 20250514 ou SEM PVE"></div>
-            <div class="f"><label>Incluído em</label><input type="date" id="hcp-incluido"></div>
-            <div class="f"><label>Liberado em</label><input type="date" id="hcp-liberado"></div>
-            <div class="f"><label>Data Necessidade</label><input type="date" id="hcp-necessidade"></div>
-            <div class="f"><label>Data Assinatura Contrato</label><input type="date" id="hcp-assinatura"></div>
-            <div class="f"><label>Data Início Contrato</label><input type="date" id="hcp-inicio"></div>
+            <div class="f"><label>Incluído em</label><input type="date" id="hcp-incluido" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Liberado em</label><input type="date" id="hcp-liberado" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Data Necessidade</label><input type="date" id="hcp-necessidade" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Data Assinatura Contrato</label><input type="date" id="hcp-assinatura" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Data Início Contrato</label><input type="date" id="hcp-inicio" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
             <div class="f"><label>Motivo *</label>
               <select id="hcp-motivo"><option value="">Selecione...</option><option>SUBSTITUIÇÃO</option><option>CONTRATO NOVO</option><option>FERISTA</option><option>AUMENTO DE QUADRO</option><option>DEMISSÃO NA JUSTA CAUSA</option></select>
             </div>
@@ -174,8 +177,8 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
             <div class="f"><label>Regional</label><select id="col-regional"><option value="">Selecione...</option></select></div>
             <div class="f"><label>Coordenador</label><select id="col-coord"><option value="">Selecione...</option></select></div>
             <div class="f"><label>Escala</label><select id="col-escala"><option value="">Selecione...</option></select></div>
-            <div class="f"><label>Data de Admissão</label><input type="date" id="col-admissao"></div>
-            <div class="f"><label>Data de Desligamento</label><input type="date" id="col-desligamento"></div>
+            <div class="f"><label>Data de Admissão</label><input type="date" id="col-admissao" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Data de Desligamento</label><input type="date" id="col-desligamento" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
             <div class="f"><label>Situação</label><select id="col-situacao"><option value="ATIVO">ATIVO</option><option value="DESLIGADO">DESLIGADO</option></select></div>
             <div class="f"><label>Motivo Admissão</label><input type="text" id="col-motivo-adm"></div>
             <div class="f"><label>Motivo Demissão</label><input type="text" id="col-motivo-dem"></div>
@@ -217,8 +220,8 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
               <div class="f"><label>Ano</label><input type="number" id="abs-ano" min="2024" max="2030"></div>
               <div class="f"><label>Matrícula</label><input type="text" id="abs-mat" placeholder="Ex: 241758" oninput="buscarColab()"></div>
               <div class="f full"><div class="info-box" id="abs-info"><span id="abs-info-nome" style="font-weight:600"></span><span id="abs-info-cargo" style="color:var(--muted)"></span></div></div>
-              <div class="f"><label>Data Início</label><input type="date" id="abs-inicio"></div>
-              <div class="f"><label>Data Final</label><input type="date" id="abs-fim"></div>
+              <div class="f"><label>Data Início</label><input type="date" id="abs-inicio" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+              <div class="f"><label>Data Final</label><input type="date" id="abs-fim" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
               <div class="f"><label>Regional</label><select id="abs-regional"><option value="">Selecione...</option></select></div>
               <div class="f"><label>Coordenador</label><select id="abs-coord"><option value="">Selecione...</option></select></div>
               <div class="f"><label>Escala</label><select id="abs-escala"><option value="">Selecione...</option></select></div>
@@ -409,11 +412,64 @@ async function carregarColaboradores(){var res=await db.from('colaboradores').se
 function setFiltro(s){_colFiltro=s;['TODOS','ATIVO','DESLIGADO'].forEach(function(k){var b=document.getElementById('f-'+k.toLowerCase());if(b)b.classList.toggle('on',k===s||(k==='TODOS'&&s==='TODOS'));});filtrarCol();}
 function filtrarCol(){var busca=(document.getElementById('col-busca').value||'').toLowerCase();var dados=_colCache.filter(function(r){if(_colFiltro!=='TODOS'&&r.situacao!==_colFiltro)return false;if(busca){var m=(r.matricula||'').toLowerCase(),n=(r.nome||'').toLowerCase();if(!m.includes(busca)&&!n.includes(busca))return false;}return true;});document.getElementById('cnt-col-tbl').textContent=dados.length+' registros';document.getElementById('tbody-col').innerHTML=dados.length?dados.map(function(r){var escCod=r.escala?r.escala.codigo_escala:'—';var reg=r.regional?r.regional.sigla:'—';var dep=r.departamento?r.departamento.nome_departamento:'—';var bdg=r.situacao==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">DESLIGADO</span>';var mat=r.matricula.replace(/\\/g,'\\\\').replace(/'/g,"\\'");return '<tr style="cursor:pointer" onclick="editarCol(\''+mat+'\')">'+'<td>'+H(r.matricula)+'</td><td>'+H(r.nome)+'</td><td>'+H(r.cargo||'—')+'</td>'+'<td>'+H(dep)+'</td><td>'+H(reg)+'</td><td>'+H(escCod)+'</td><td>'+bdg+'</td>'+'<td><button class="btn-del" onclick="event.stopPropagation();del(\'colaboradores\',\''+mat+'\',carregarColaboradores,true)">🗑</button></td></tr>';}).join(''):'<tr><td colspan="8" class="empty">Nenhum colaborador encontrado.</td></tr>';}
 function editarCol(mat){var r=_colCache.find(function(c){return c.matricula===mat;});if(!r)return;['col-matricula','col-nome','col-cpf','col-cargo','col-estado','col-admissao','col-desligamento','col-motivo-adm','col-motivo-dem'].forEach(function(id){var map={  'col-matricula':r.matricula,'col-nome':r.nome,'col-cpf':r.cpf||'','col-cargo':r.cargo||'','col-estado':r.estado_departamento||'','col-admissao':r.data_admissao||'','col-desligamento':r.data_desligamento||'','col-motivo-adm':r.motivo_admissao||'','col-motivo-dem':r.motivo_demissao||''};var e=document.getElementById(id);if(e)e.value=map[id];});document.getElementById('col-situacao').value=r.situacao||'ATIVO';if(r.regional_id){var rEl=document.getElementById('col-regional');if(rEl)rEl.value=r.regional_id;}if(r.coordenador_id){var cEl=document.getElementById('col-coord');if(cEl)cEl.value=r.coordenador_id;}if(r.escala_id){var eEl=document.getElementById('col-escala');if(eEl)eEl.value=r.escala_id;}if(r.departamento_id){var dEl=document.getElementById('col-depto');if(dEl)dEl.value=r.departamento_id;}var btn=document.getElementById('btn-col');btn.textContent='Atualizar Colaborador';btn.setAttribute('data-lbl','Atualizar Colaborador');document.getElementById('mod-colaboradores').scrollIntoView({behavior:'smooth'});toast('Colaborador carregado. Edite e clique em Atualizar.','');}
+function validarData(input){
+  if(!input.value){input.classList.remove('campo-erro');return true;}
+  var d=new Date(input.value);
+  var ok=!isNaN(d.getTime())&&input.value.length===10;
+  // Verificar se a data é razoável (entre 2000 e 2100)
+  if(ok){var ano=parseInt(input.value.split('-')[0]);ok=ano>=2000&&ano<=2100;}
+  input.classList.toggle('campo-erro',!ok);
+  return ok;
+}
+function validarDatasForm(ids){
+  var ok=true;
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&el.value&&!validarData(el)){ok=false;}
+  });
+  return ok;
+}
+function parseDtImport(v){
+  if(!v||v==='')return null;
+  if(v instanceof Date){
+    if(isNaN(v.getTime()))return 'INVALIDA';
+    return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+  }
+  var s=String(v).trim();
+  if(!s)return null;
+  // AAAA-MM-DD
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    var d=new Date(s);
+    if(isNaN(d.getTime()))return 'INVALIDA';
+    var ano=parseInt(s.split('-')[0]);
+    return (ano>=2000&&ano<=2100)?s:'INVALIDA';
+  }
+  // DD/MM/AAAA
+  var p=s.split('/');
+  if(p.length===3&&p[2].length===4){
+    var iso=p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+    var d2=new Date(iso);
+    if(isNaN(d2.getTime()))return 'INVALIDA';
+    var ano2=parseInt(p[2]);
+    return (ano2>=2000&&ano2<=2100)?iso:'INVALIDA';
+  }
+  // Serial Excel
+  var n=parseInt(s);
+  if(!isNaN(n)&&n>1000){
+    var dt=new Date((n-25569)*86400*1000);
+    if(isNaN(dt.getTime()))return 'INVALIDA';
+    return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  return 'INVALIDA';
+}
 async function salvarHcp(){
   var mes=document.getElementById('hcp-mes').value;
   var ano=parseInt(document.getElementById('hcp-ano').value);
   var motivo=document.getElementById('hcp-motivo').value;
   if(!mes||!ano||!motivo){toast('Preencha Mês, Ano e Motivo.','err');return;}
+  if(!validarDatasForm(['hcp-incluido','hcp-liberado','hcp-necessidade','hcp-assinatura','hcp-inicio'])){
+    toast('Verifique as datas em vermelho.','err');return;
+  }
   setBtnLoad('btn-hcp',true);
   var coordEl=document.getElementById('hcp-coord');
   var coordId=parseInt(coordEl.value)||null;
@@ -473,15 +529,24 @@ async function importarHcp(input){
         var ano=parseInt(r['Período Ano*'])||0;
         var motivo=String(r['Motivo']||'').trim();
         if(!mes||!ano||!motivo){erros.push('Linha '+(i+2)+': Mês, Ano e Motivo obrigatórios');return;}
-        function parseData(v){if(!v||v==='')return null;if(v instanceof Date){var d=v;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}var s=String(v).trim();if(!s)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;var p=s.split('/');if(p.length===3){if(p[2].length===4)return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');if(p[0].length===4)return p[0]+'-'+p[1].padStart(2,'0')+'-'+p[2].padStart(2,'0');}var n=parseInt(s);if(!isNaN(n)&&n>1000){var dt=new Date((n-25569)*86400*1000);return dt.toISOString().split('T')[0];}return null;}
+        var parseData=parseDtImport;
+        var datas={
+          incluido_em:parseDtImport(r['Incluído em (AAAA-MM-DD)']),
+          liberado_em:parseDtImport(r['Liberado em (AAAA-MM-DD)']),
+          data_necessidade:parseDtImport(r['Data Necessidade (AAAA-MM-DD)']),
+          data_assinatura_contrato:parseDtImport(r['Data Assinatura Contrato (AAAA-MM-DD)']),
+          data_inicio_contrato:parseDtImport(r['Data Início Contrato (AAAA-MM-DD)'])
+        };
+        var datasInvalidas=Object.entries(datas).filter(function(e){return e[1]==='INVALIDA';}).map(function(e){return e[0];});
+        if(datasInvalidas.length){erros.push('Linha '+(i+2)+': data inválida em '+datasInvalidas.join(', '));return;}
         payload.push({
           periodo_mes:mes,periodo_ano:ano,
           id_pve:String(r['ID PVE']||'').trim()||null,
-          incluido_em:parseData(r['Incluído em (AAAA-MM-DD)']),
-          liberado_em:parseData(r['Liberado em (AAAA-MM-DD)']),
-          data_necessidade:parseData(r['Data Necessidade (AAAA-MM-DD)']),
-          data_assinatura_contrato:parseData(r['Data Assinatura Contrato (AAAA-MM-DD)']),
-          data_inicio_contrato:parseData(r['Data Início Contrato (AAAA-MM-DD)']),
+          incluido_em:datas.incluido_em,
+          liberado_em:datas.liberado_em,
+          data_necessidade:datas.data_necessidade,
+          data_assinatura_contrato:datas.data_assinatura_contrato,
+          data_inicio_contrato:datas.data_inicio_contrato,
           motivo:motivo,
           departamento:String(r['Departamento']||'').trim()||null,
           regional:String(r['Regional']||'').trim()||null,
@@ -507,7 +572,7 @@ async function importarHcp(input){
   reader.readAsArrayBuffer(input.files[0]);
   input.value='';
 }
-async function salvarFalta(){var mes=document.getElementById('abs-mes').value;var ano=parseInt(document.getElementById('abs-ano').value);var mat=document.getElementById('abs-mat').value.trim();var status=document.getElementById('abs-status').value;if(!mes||!ano||!mat||!status){toast('Preencha Mês, Ano, Matrícula e Status.','err');return;}setBtnLoad('btn-abs',true);var res=await db.from('faltas').insert({mes:mes,ano:ano,matricula:mat,status_falta:status,data_inicio_falta:document.getElementById('abs-inicio').value||null,data_final_falta:document.getElementById('abs-fim').value||null,regional_id:parseInt(document.getElementById('abs-regional').value)||null,coordenador_id:parseInt(document.getElementById('abs-coord').value)||null,escala_id:parseInt(document.getElementById('abs-escala').value)||null,cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid').value||null):null,detalhe_cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid-det').value||null):null});setBtnLoad('btn-abs',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Falta salva!','ok');limpar('abs');carregarFaltas();atualizarContadores();}}
+async function salvarFalta(){var mes=document.getElementById('abs-mes').value;var ano=parseInt(document.getElementById('abs-ano').value);var mat=document.getElementById('abs-mat').value.trim();var status=document.getElementById('abs-status').value;if(!mes||!ano||!mat||!status){toast('Preencha Mês, Ano, Matrícula e Status.','err');return;}if(!validarDatasForm(['abs-inicio','abs-fim'])){toast('Verifique as datas em vermelho.','err');return;}setBtnLoad('btn-abs',true);var res=await db.from('faltas').insert({mes:mes,ano:ano,matricula:mat,status_falta:status,data_inicio_falta:document.getElementById('abs-inicio').value||null,data_final_falta:document.getElementById('abs-fim').value||null,regional_id:parseInt(document.getElementById('abs-regional').value)||null,coordenador_id:parseInt(document.getElementById('abs-coord').value)||null,escala_id:parseInt(document.getElementById('abs-escala').value)||null,cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid').value||null):null,detalhe_cid:status==='JUSTIFICADA'?(document.getElementById('abs-cid-det').value||null):null});setBtnLoad('btn-abs',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Falta salva!','ok');limpar('abs');carregarFaltas();atualizarContadores();}}
 async function salvarCalendario(){var mes=document.getElementById('cal-mes').value;var ano=parseInt(document.getElementById('cal-ano').value);var escId=parseInt(document.getElementById('cal-escala').value);var dias=parseInt(document.getElementById('cal-dias').value);if(!mes||!ano||!escId||!dias){toast('Preencha todos os campos.','err');return;}var res=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:escId,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Salvo!','ok');document.getElementById('cal-mes').selectedIndex=0;document.getElementById('cal-dias').value='';carregarCalendario();}}
 async function salvarColaborador(){var mat=document.getElementById('col-matricula').value.trim();var nome=document.getElementById('col-nome').value.trim();if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}setBtnLoad('btn-col',true);var res=await db.from('colaboradores').upsert({matricula:mat,nome:nome,cpf:document.getElementById('col-cpf').value||null,cargo:document.getElementById('col-cargo').value||null,departamento_id:parseInt(document.getElementById('col-depto').value)||null,estado_departamento:document.getElementById('col-estado').value||null,regional_id:parseInt(document.getElementById('col-regional').value)||null,coordenador_id:parseInt(document.getElementById('col-coord').value)||null,escala_id:parseInt(document.getElementById('col-escala').value)||null,data_admissao:document.getElementById('col-admissao').value||null,data_desligamento:document.getElementById('col-desligamento').value||null,situacao:document.getElementById('col-situacao').value||'ATIVO',motivo_admissao:document.getElementById('col-motivo-adm').value||null,motivo_demissao:document.getElementById('col-motivo-dem').value||null},{onConflict:'matricula'});setBtnLoad('btn-col',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Colaborador salvo!','ok');limpar('col');var btn=document.getElementById('btn-col');btn.textContent='Salvar Colaborador';btn.setAttribute('data-lbl','Salvar Colaborador');carregarColaboradores();atualizarContadores();}}
 async function salvarMeta(tipo){var map={hcp:{p:'mhcp',tb:'metas_hcp'},abs:{p:'mabs',tb:'metas_absenteismo'},turn:{p:'mturn',tb:'metas_turnover'},tre:{p:'mtre',tb:'metas_treinamento'}};var cfg=map[tipo];if(!cfg)return;var mes=document.getElementById(cfg.p+'-mes').value;var ano=parseInt(document.getElementById(cfg.p+'-ano').value);if(!mes||!ano){toast('Preencha Mês e Ano.','err');return;}var payload={ano:ano,mes:mes};if(tipo==='tre'){payload.qtd_treinamentos_esperados=parseInt(document.getElementById('mtre-qtd').value)||8;payload.meta_alcance=parseFloat(document.getElementById('mtre-meta').value)||0.9;}else{payload.meta=parseFloat(document.getElementById(cfg.p+'-meta').value)||0;}var res=await db.from(cfg.tb).upsert(payload,{onConflict:'ano,mes'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Meta salva!','ok');}}
