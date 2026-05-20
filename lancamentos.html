@@ -291,8 +291,8 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
             </div>
           </div>
           <div style="overflow-x:auto"><table>
-            <thead><tr><th>Código</th><th>Nome do Departamento</th><th>Regional</th><th>Estado</th><th>Status</th><th></th></tr></thead>
-            <tbody id="tbody-deptos"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+            <thead><tr><th>Nome do Departamento</th><th>Status</th></tr></thead>
+            <tbody id="tbody-deptos"><tr><td colspan="2" class="empty">Carregando...</td></tr></tbody>
           </table></div>
         </div>
       </div>
@@ -392,28 +392,20 @@ async function del(tabela,id,cb,isText){if(!confirm('Excluir este registro?'))re
 
 var _deptosCache=[];
 async function carregarDepartamentos(){
-  var res=await db.from('departamentos').select('id,nome_departamento,codigo,regional_id,estado_departamento,status_departamento').order('nome_departamento').limit(300);
+  var res=await db.from('departamentos').select('nome_departamento,status_departamento').order('nome_departamento').limit(300);
   _deptosCache=res.data||[];
   document.getElementById('cnt-deptos').textContent=_deptosCache.length;
   filtrarDeptos();
 }
 function filtrarDeptos(){
   var busca=(document.getElementById('dep-busca')?document.getElementById('dep-busca').value||'':'').toLowerCase();
-  var dados=busca?_deptosCache.filter(function(d){return (d.nome_departamento||'').toLowerCase().includes(busca)||(d.codigo||'').toLowerCase().includes(busca);}):_deptosCache;
+  var dados=busca?_deptosCache.filter(function(d){return (d.nome_departamento||'').toLowerCase().includes(busca);}):_deptosCache;
   document.getElementById('cnt-deptos-tbl').textContent=dados.length+' registros';
-  var mapReg={1:'PE',2:'SP',3:'ADM'};
   document.getElementById('tbody-deptos').innerHTML=dados.length?dados.map(function(d){
     var st=d.status_departamento||'ATIVO';
     var bdg=st==='ATIVO'?'<span class="bdg bdg-g">ATIVO</span>':'<span class="bdg bdg-r">'+H(st)+'</span>';
-    return '<tr>'
-      +'<td>'+H(d.codigo||'—')+'</td>'
-      +'<td>'+H(d.nome_departamento||'—')+'</td>'
-      +'<td>'+H(mapReg[d.regional_id]||'—')+'</td>'
-      +'<td>'+H(d.estado_departamento||'—')+'</td>'
-      +'<td>'+bdg+'</td>'
-      +'<td><button class="btn-del" onclick="del(\'departamentos\','+d.id+',carregarDepartamentos)">🗑</button></td>'
-      +'</tr>';
-  }).join(''):'<tr><td colspan="6" class="empty">Nenhum departamento encontrado.</td></tr>';
+    return '<tr><td>'+H(d.nome_departamento||'—')+'</td><td>'+bdg+'</td></tr>';
+  }).join(''):'<tr><td colspan="2" class="empty">Nenhum departamento encontrado.</td></tr>';
 }
 async function salvarDepartamento(){
   var nome=document.getElementById('dep-nome').value.trim().toUpperCase();
@@ -430,21 +422,13 @@ async function salvarDepartamento(){
 function baixarModeloDep(){
   var XLSX=window.XLSX;
   if(!XLSX){toast('Biblioteca não carregada ainda.','err');return;}
-  var dados=[{
-    'Nome do Departamento*':'AMBEV RECIFE',
-    'Código':'PE-042',
-    'Regional (PE, SP ou ADM)':'PE',
-    'Estado (sigla)':'PE',
-    'Status (ATIVO ou INATIVO)':'ATIVO'
-  },{
-    'Nome do Departamento*':'CROWN CAMPINAS',
-    'Código':'SP-051',
-    'Regional (PE, SP ou ADM)':'SP',
-    'Estado (sigla)':'SP',
-    'Status (ATIVO ou INATIVO)':'ATIVO'
-  }];
+  var dados=[
+    {'Nome do Departamento*':'AMBEV RECIFE','Status (ATIVO ou INATIVO)':'ATIVO'},
+    {'Nome do Departamento*':'CROWN CAMPINAS','Status (ATIVO ou INATIVO)':'ATIVO'},
+    {'Nome do Departamento*':'BRASILIT CAPIVARI','Status (ATIVO ou INATIVO)':'INATIVO'}
+  ];
   var ws=XLSX.utils.json_to_sheet(dados);
-  ws['!cols']=[{wch:36},{wch:12},{wch:22},{wch:12},{wch:24}];
+  ws['!cols']=[{wch:40},{wch:24}];
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Departamentos');
   XLSX.writeFile(wb,'Modelo_Departamentos.xlsx');
@@ -460,17 +444,12 @@ async function importarDepartamentos(input){
       var wb=XLSX.read(e.target.result,{type:'array'});
       var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
       if(!rows.length){toast('Planilha vazia.','err');return;}
-      var mapReg={'PE':1,'SP':2,'ADM':3};
       var payload=[];var erros=[];
       rows.forEach(function(r,i){
         var nome=String(r['Nome do Departamento*']||r['Nome do Departamento']||'').trim().toUpperCase();
         if(!nome){erros.push('Linha '+(i+2)+': nome obrigatório');return;}
-        var regSigla=String(r['Regional (PE, SP ou ADM)']||'').trim().toUpperCase();
         payload.push({
           nome_departamento:nome,
-          codigo:String(r['Código']||'').trim().toUpperCase()||null,
-          regional_id:mapReg[regSigla]||null,
-          estado_departamento:String(r['Estado (sigla)']||'').trim().toUpperCase()||null,
           status_departamento:String(r['Status (ATIVO ou INATIVO)']||'ATIVO').trim().toUpperCase()||'ATIVO'
         });
       });
