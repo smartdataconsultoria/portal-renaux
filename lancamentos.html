@@ -413,6 +413,7 @@ async function salvarDepartamento(){
   setBtnLoad('btn-dep',true);
   var res=await db.from('departamentos').insert({
     nome_departamento:nome,
+    codigo:'DEP-'+Date.now(),
     status_departamento:document.getElementById('dep-status').value||'ATIVO'
   });
   setBtnLoad('btn-dep',false);
@@ -450,13 +451,14 @@ async function importarDepartamentos(input){
         if(!nome){erros.push('Linha '+(i+2)+': nome obrigatório');return;}
         payload.push({
           nome_departamento:nome,
+          codigo:'IMP-'+Date.now()+'-'+i,
           status_departamento:String(r['Status (ATIVO ou INATIVO)']||'ATIVO').trim().toUpperCase()||'ATIVO'
         });
       });
       if(erros.length){toast('Erros: '+erros.slice(0,3).join(' | '),'err');return;}
       if(!payload.length){toast('Nenhum dado válido.','err');return;}
       toast('Importando '+payload.length+' departamentos...','');
-      var res=await db.from('departamentos').upsert(payload,{onConflict:'nome_departamento',ignoreDuplicates:true});
+      var res=await db.from('departamentos').insert(payload);
       if(res.error){toast('Erro: '+res.error.message,'err');}
       else{toast(payload.length+' departamentos importados!','ok');await carregarDepartamentos();await carregarRefs();}
     }catch(err){toast('Erro ao processar: '+err.message,'err');}
