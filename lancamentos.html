@@ -443,12 +443,19 @@ async function salvarHcp(){
 }
 function baixarModeloHcp(){
   if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
-  var dados=[{'Período Mês*':'MAIO','Período Ano*':2025,'ID PVE':'20250514','Incluído em (AAAA-MM-DD)':'2025-05-01','Liberado em (AAAA-MM-DD)':'2025-05-10','Data Necessidade (AAAA-MM-DD)':'2025-05-20','Data Assinatura Contrato (AAAA-MM-DD)':'2025-05-18','Data Início Contrato (AAAA-MM-DD)':'2025-06-01','Motivo':'SUBSTITUIÇÃO','Departamento':'AMBEV RECIFE','Regional':'PE','Coordenador':'NOME DO COORDENADOR','Função':'AUXILIAR DE OPERAÇÃO','Funcionário Substituído':'JOÃO SILVA','Funcionário Contratado':'MARIA SANTOS','Observação':'Substituição por afastamento médico'}];
-  var ws=window.XLSX.utils.json_to_sheet(dados);
-  ws['!cols']=[{wch:16},{wch:14},{wch:14},{wch:26},{wch:24},{wch:26},{wch:28},{wch:26},{wch:22},{wch:30},{wch:12},{wch:26},{wch:26},{wch:24},{wch:24},{wch:36}];
-  var wb=window.XLSX.utils.book_new();
-  window.XLSX.utils.book_append_sheet(wb,ws,'HCP');
-  window.XLSX.writeFile(wb,'Modelo_HCP.xlsx');
+  var X=window.XLSX;
+  var wb=X.utils.book_new();
+  var ws=X.utils.aoa_to_sheet([
+    ['Período Mês*','Período Ano*','ID PVE','Incluído em','Liberado em','Data Necessidade','Data Assinatura Contrato','Data Início Contrato','Motivo','Departamento','Regional','Coordenador','Função','Funcionário Substituído','Funcionário Contratado','Observação'],
+    ['MAIO',2025,'20250514',new Date(2025,0,10),new Date(2025,0,20),new Date(2025,1,5),new Date(2025,1,18),new Date(2025,2,1),'SUBSTITUIÇÃO','AMBEV RECIFE','PE','NOME DO COORDENADOR','AUXILIAR DE OPERAÇÃO','JOÃO SILVA','MARIA SANTOS','Substituição por afastamento médico']
+  ]);
+  var fmtDate='dd/mm/yyyy';
+  ['D2','E2','F2','G2','H2'].forEach(function(cell){
+    if(ws[cell]){ws[cell].t='d';ws[cell].z=fmtDate;}
+  });
+  ws['!cols']=[{wch:14},{wch:12},{wch:14},{wch:16},{wch:16},{wch:18},{wch:22},{wch:18},{wch:22},{wch:30},{wch:10},{wch:24},{wch:24},{wch:22},{wch:22},{wch:34}];
+  X.utils.book_append_sheet(wb,ws,'HCP');
+  X.writeFile(wb,'Modelo_HCP.xlsx');
   toast('Modelo baixado!','ok');
 }
 async function importarHcp(input){
@@ -466,7 +473,7 @@ async function importarHcp(input){
         var ano=parseInt(r['Período Ano*'])||0;
         var motivo=String(r['Motivo']||'').trim();
         if(!mes||!ano||!motivo){erros.push('Linha '+(i+2)+': Mês, Ano e Motivo obrigatórios');return;}
-        function parseData(v){if(!v||v==='')return null;var s=String(v).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;var p=s.split('/');if(p.length===3)return p[2]+'-'+p[1]+'-'+p[0];var n=parseInt(s);if(!isNaN(n)&&n>1000){var d=new Date((n-25569)*86400*1000);return d.toISOString().split('T')[0];}return null;}
+        function parseData(v){if(!v||v==='')return null;if(v instanceof Date){var d=v;return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}var s=String(v).trim();if(!s)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;var p=s.split('/');if(p.length===3){if(p[2].length===4)return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');if(p[0].length===4)return p[0]+'-'+p[1].padStart(2,'0')+'-'+p[2].padStart(2,'0');}var n=parseInt(s);if(!isNaN(n)&&n>1000){var dt=new Date((n-25569)*86400*1000);return dt.toISOString().split('T')[0];}return null;}
         payload.push({
           periodo_mes:mes,periodo_ano:ano,
           id_pve:String(r['ID PVE']||'').trim()||null,
