@@ -108,6 +108,7 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
       <button class="sb-btn" onclick="abrir('colaboradores')" id="sb-colaboradores">Colaboradores <span class="sb-cnt" id="cnt-colab">0</span></button>
       <button class="sb-btn" onclick="abrir('absentes')" id="sb-absentes">Absenteísmo <span class="sb-cnt" id="cnt-abs">0</span></button>
       <button class="sb-btn" onclick="abrir('departamentos')" id="sb-departamentos">Departamentos <span class="sb-cnt" id="cnt-deptos">0</span></button>
+      <button class="sb-btn" onclick="abrir('treinamentos')" id="sb-treinamentos">Treinamentos <span class="sb-cnt" id="cnt-tre">0</span></button>
       <button class="sb-btn" onclick="abrir('metas')" id="sb-metas">Metas</button>
     </div>
 
@@ -388,6 +389,74 @@ tbody tr:hover td{background:rgba(200,146,42,.02)}
         </div>
       </div>
 
+      <!-- TREINAMENTOS -->
+      <div class="mod" id="mod-treinamentos">
+        <div class="ph"><div class="ph-title">Treinamentos — <span>Registro</span></div><div class="ph-sub">Registre treinamentos realizados por cliente.</div></div>
+        <div class="card">
+          <div class="card-title">Novo Treinamento</div>
+          <div class="grid g3">
+            <div class="f"><label>Ano *</label><input type="number" id="tre-ano" min="2024" max="2030"></div>
+            <div class="f"><label>Mês *</label><select id="tre-mes"></select></div>
+            <div class="f"><label>Data *</label><input type="date" id="tre-data" onchange="validarData(this)"><span class="msg-erro">Data inválida</span></div>
+            <div class="f"><label>Cliente (Departamento)</label><select id="tre-cliente"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Regional</label><select id="tre-regional"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Coordenador</label><select id="tre-coord"><option value="">Selecione...</option></select></div>
+            <div class="f"><label>Analista</label><input type="text" id="tre-analista" placeholder="Ex: Tereza / Vitória"></div>
+            <div class="f"><label>Status *</label>
+              <select id="tre-status">
+                <option value="">Selecione...</option>
+                <option>Realizado</option>
+                <option>Não Realizado</option>
+                <option>Agendado</option>
+                <option>Cancelado</option>
+              </select>
+            </div>
+            <div class="f full"><label>Observação</label><textarea id="tre-obs" placeholder="Informações adicionais..."></textarea></div>
+          </div>
+          <div class="actions">
+            <button class="btn-save" id="btn-tre" data-lbl="Salvar Treinamento" onclick="salvarTreinamento()">Salvar Treinamento</button>
+            <button class="btn-sec" onclick="limpar('tre')">Limpar</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <div class="tbl-hd">
+            <div class="tbl-hd-title">Treinamentos registrados</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="text" id="tre-busca" placeholder="Buscar qualquer termo..." oninput="filtrarTre()" style="flex:1;min-width:180px;background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none">
+              <select id="tre-filtro-mes" onchange="filtrarTre()" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none">
+                <option value="">Todos os meses</option>
+                <option>JANEIRO</option><option>FEVEREIRO</option><option>MARÇO</option><option>ABRIL</option>
+                <option>MAIO</option><option>JUNHO</option><option>JULHO</option><option>AGOSTO</option>
+                <option>SETEMBRO</option><option>OUTUBRO</option><option>NOVEMBRO</option><option>DEZEMBRO</option>
+              </select>
+              <input type="number" id="tre-filtro-ano" placeholder="Ano" onchange="filtrarTre()" min="2020" max="2030" style="background:rgba(11,18,32,.7);border:1px solid var(--navy-border);border-radius:7px;color:var(--text);padding:6px 10px;font-size:11px;font-family:'Poppins',sans-serif;outline:none;width:80px">
+              <button onclick="limparFiltroTre()" style="background:transparent;border:1px solid var(--navy-border);border-radius:7px;color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;">Limpar</button>
+              <button onclick="exportarTre()" style="background:rgba(52,201,126,.1);border:1px solid rgba(52,201,126,.25);color:var(--green);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Excel</button>
+              <button onclick="baixarModeloTre()" style="background:rgba(200,146,42,.1);border:1px solid rgba(200,146,42,.28);color:var(--gold);border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬇ Modelo</button>
+              <button onclick="document.getElementById('import-tre-file').click()" style="background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.28);color:#7ab3f7;border-radius:7px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;">⬆ Importar</button>
+              <input type="file" id="import-tre-file" accept=".xlsx,.xls" onchange="importarTre(this)" style="display:none">
+              <div class="tbl-cnt" id="cnt-tre-tbl">0 registros</div>
+            </div>
+          </div>
+          <div id="tre-scroll-top" style="overflow-x:auto;overflow-y:hidden;height:12px;border-bottom:1px solid var(--navy-border)"><div id="tre-scroll-inner" style="height:1px"></div></div>
+          <div id="tre-tbl-wrap" style="overflow-x:auto"><table>
+            <thead><tr>
+              <th onclick="sortTre('ano')" style="cursor:pointer">Ano ↕</th>
+              <th onclick="sortTre('mes')" style="cursor:pointer">Mês ↕</th>
+              <th>Data</th>
+              <th onclick="sortTre('cliente')" style="cursor:pointer">Cliente ↕</th>
+              <th>Regional</th>
+              <th>Coordenador</th>
+              <th>Analista</th>
+              <th onclick="sortTre('status')" style="cursor:pointer">Status ↕</th>
+              <th>Observação</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="tbody-tre"><tr><td colspan="10" class="empty">Carregando...</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+
       <!-- METAS -->
       <div class="mod" id="mod-metas">
         <div class="ph"><div class="ph-title">Metas — <span>Configuração Mensal</span></div><div class="ph-sub">Defina as metas de cada indicador.</div></div>
@@ -463,11 +532,11 @@ function tabMeta(t){['hcp','abs','turn','tre'].forEach(function(k){document.getE
 function toggleCid(){var v=document.getElementById('abs-status').value==='JUSTIFICADA';document.getElementById('cid-campo').style.display=v?'':'none';document.getElementById('cid-det-campo').style.display=v?'':'none';}
 function limpar(p){document.querySelectorAll('[id^="'+p+'-"]').forEach(function(e){if(e.tagName==='INPUT'||e.tagName==='TEXTAREA')e.value='';if(e.tagName==='SELECT')e.selectedIndex=0;});var i=document.getElementById('abs-info');if(i)i.style.display='none';}
 async function carregarRefs(){var r=await Promise.all([db.from('coordenadores').select('id,nome').eq('ativo',true).order('nome'),db.from('escalas').select('id,codigo_escala').eq('ativo',true).order('codigo_escala'),db.from('regioes').select('id,sigla').eq('ativo',true).order('sigla'),db.from('departamentos').select('nome_departamento,status_departamento').order('nome_departamento').limit(300),db.from('cid').select('codigo,descricao').order('codigo')]);_coordsCache=r[0].data||[];_escalasCache=r[1].data||[];
-var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+H(d.nome_departamento)+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto','abs-depto'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;
+var oC=(r[0].data||[]).map(function(c){return '<option value="'+c.id+'">'+H(c.nome)+'</option>';}).join('');var oE=(r[1].data||[]).map(function(e){return '<option value="'+e.id+'">'+H(e.codigo_escala)+'</option>';}).join('');var oR=(r[2].data||[]).map(function(x){return '<option value="'+x.id+'">'+H(x.sigla)+'</option>';}).join('');var oD=(r[3].data||[]).map(function(d){return '<option value="'+H(d.nome_departamento)+'">'+H(d.nome_departamento)+'</option>';}).join('');var oCid=(r[4].data||[]).map(function(c){return '<option value="'+H(c.codigo)+'">'+H(c.codigo)+' — '+H(c.descricao)+'</option>';}).join('');['hcp-coord','abs-coord','col-coord','tre-coord'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oC;});['abs-escala','cal-escala','col-escala'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oE;});['hcp-regional','abs-regional','col-regional','tre-regional'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oR;});['hcp-depto','col-depto','abs-depto','tre-cliente'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<option value="">Selecione...</option>'+oD;});var cidEl=document.getElementById('abs-cid');if(cidEl)cidEl.innerHTML='<option value="">Selecione...</option>'+oCid;
   }
 var _buscaTmr=null;
 async function buscarColab(){clearTimeout(_buscaTmr);_buscaTmr=setTimeout(async function(){var mat=document.getElementById('abs-mat').value.trim();var box=document.getElementById('abs-info');if(mat.length<3){box.style.display='none';return;}var res=await db.from('colaboradores').select('nome,cargo,escala_id,regional_id,coordenador_id').eq('matricula',mat).maybeSingle();var data=res.data;if(data){document.getElementById('abs-info-nome').textContent=data.nome;document.getElementById('abs-info-cargo').textContent=' · '+(data.cargo||'');box.style.display='';if(data.regional_id){var rEl=document.getElementById('abs-regional');if(rEl)rEl.value=data.regional_id;}if(data.coordenador_id){var cEl=document.getElementById('abs-coord');if(cEl)cEl.value=data.coordenador_id;}if(data.escala_id){var eEl=document.getElementById('abs-escala');if(eEl)eEl.value=data.escala_id;}}else{box.style.display='none';}},400);}
-async function atualizarContadores(){var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();var ano=new Date().getFullYear();var r=await Promise.all([db.from('hcp_vagas').select('id',{count:'exact',head:true}).eq('periodo_ano',ano).eq('periodo_mes',mes),db.from('faltas').select('id',{count:'exact',head:true}).eq('ano',ano).eq('mes',mes),db.from('colaboradores').select('matricula',{count:'exact',head:true}).eq('situacao','ATIVO')]);document.getElementById('cnt-hcp').textContent=r[0].count||0;document.getElementById('cnt-abs').textContent=r[1].count||0;document.getElementById('cnt-colab').textContent=r[2].count||0;}
+async function atualizarContadores(){var mes=new Date().toLocaleString('pt-BR',{month:'long'}).toUpperCase();var ano=new Date().getFullYear();var r=await Promise.all([db.from('hcp_vagas').select('id',{count:'exact',head:true}).eq('periodo_ano',ano).eq('periodo_mes',mes),db.from('faltas').select('id',{count:'exact',head:true}).eq('ano',ano).eq('mes',mes),db.from('colaboradores').select('matricula',{count:'exact',head:true}).eq('situacao','ATIVO')]);document.getElementById('cnt-hcp').textContent=r[0].count||0;document.getElementById('cnt-abs').textContent=r[1].count||0;document.getElementById('cnt-colab').textContent=r[2].count||0;var treEl=document.getElementById('cnt-tre');if(treEl)treEl.textContent=_treCache.length||0;}
 var _hcpCache=[];
 var _hcpFiltroMes='';
 var _hcpFiltroAno='';
@@ -1086,6 +1155,174 @@ async function salvarFalta(){
 }
 async function salvarCalendario(){var mes=document.getElementById('cal-mes').value;var ano=parseInt(document.getElementById('cal-ano').value);var escId=parseInt(document.getElementById('cal-escala').value);var dias=parseInt(document.getElementById('cal-dias').value);if(!mes||!ano||!escId||!dias){toast('Preencha todos os campos.','err');return;}var res=await db.from('calendario_dias_uteis').upsert({ano:ano,mes:mes,escala_id:escId,qtd_dias:dias},{onConflict:'ano,mes,escala_id'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Salvo!','ok');document.getElementById('cal-mes').selectedIndex=0;document.getElementById('cal-dias').value='';carregarCalendario();}}
 async function salvarColaborador(){var mat=document.getElementById('col-matricula').value.trim();var nome=document.getElementById('col-nome').value.trim();if(!mat||!nome){toast('Matrícula e Nome são obrigatórios.','err');return;}setBtnLoad('btn-col',true);var res=await db.from('colaboradores').upsert({matricula:mat,nome:nome,cargo:document.getElementById('col-cargo').value||null,horario:document.getElementById('col-horario').value||null,departamento_id:parseInt(document.getElementById('col-depto').value)||null,regional_id:parseInt(document.getElementById('col-regional').value)||null,coordenador_id:parseInt(document.getElementById('col-coord').value)||null,escala_id:parseInt(document.getElementById('col-escala').value)||null,data_admissao:document.getElementById('col-admissao').value||null,data_desligamento:document.getElementById('col-desligamento').value||null,situacao:document.getElementById('col-situacao').value||'ATIVO',motivo_admissao:document.getElementById('col-motivo-adm').value||null,motivo_demissao:document.getElementById('col-motivo-dem').value||null},{onConflict:'matricula'});setBtnLoad('btn-col',false);if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Colaborador salvo!','ok');limpar('col');var btn=document.getElementById('btn-col');btn.textContent='Salvar Colaborador';btn.setAttribute('data-lbl','Salvar Colaborador');carregarColaboradores();atualizarContadores();}}
+var _treCache=[];var _treBusca='';var _treFiltroMes='';var _treFiltroAno='';var _treOrdem={col:'ano',asc:false};
+
+async function carregarTreinamentos(){
+  var todos=[];var from=0;var tamPag=1000;
+  while(true){
+    var res=await db.from('treinamentos').select('id,ano,mes,data_treinamento,cliente,regional:regional_id(sigla),coordenador:coordenador_id(nome),analista,status,observacao').order('ano',{ascending:false}).range(from,from+tamPag-1);
+    if(res.error){console.warn('tre erro',res.error);break;}
+    todos=todos.concat(res.data||[]);
+    if(!res.data||res.data.length<tamPag)break;
+    from+=tamPag;
+  }
+  _treCache=todos;
+  renderTre();
+}
+function renderTre(){
+  var dados=_treCache.filter(function(r){
+    if(_treFiltroMes&&r.mes!==_treFiltroMes)return false;
+    if(_treFiltroAno&&String(r.ano)!==String(_treFiltroAno))return false;
+    if(_treBusca){var txt=[r.ano,r.mes,r.cliente,r.analista,r.status,r.observacao,r.regional?r.regional.sigla:'',r.coordenador?r.coordenador.nome:''].join(' ').toLowerCase();if(!txt.includes(_treBusca))return false;}
+    return true;
+  });
+  dados.sort(function(a,b){var va=a[_treOrdem.col]||'';var vb=b[_treOrdem.col]||'';if(va<vb)return _treOrdem.asc?-1:1;if(va>vb)return _treOrdem.asc?1:-1;return 0;});
+  document.getElementById('cnt-tre-tbl').textContent=dados.length+' de '+_treCache.length+' registros';
+  setTimeout(sincScrollTre,100);
+  var bc={'Realizado':'bdg-g','Não Realizado':'bdg-r','Agendado':'bdg-w','Cancelado':'bdg-gold'};
+  document.getElementById('tbody-tre').innerHTML=dados.length?dados.map(function(r){
+    var badge='<span class="bdg '+(bc[r.status]||'bdg-gold')+'">'+H(r.status)+'</span>';
+    return '<tr>'
+      +'<td>'+H(r.ano||'—')+'</td>'
+      +'<td>'+H(r.mes||'—')+'</td>'
+      +'<td>'+fmtD(r.data_treinamento)+'</td>'
+      +'<td>'+H(r.cliente||'—')+'</td>'
+      +'<td>'+H(r.regional?r.regional.sigla:'—')+'</td>'
+      +'<td>'+H(r.coordenador?r.coordenador.nome:'—')+'</td>'
+      +'<td>'+H(r.analista||'—')+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td>'+H(r.observacao||'—')+'</td>'
+      +'<td><button class="btn-del" onclick="del(\'treinamentos\','+r.id+',carregarTreinamentos)">🗑</button></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="10" class="empty">Nenhum registro.</td></tr>';
+}
+function sortTre(col){if(_treOrdem.col===col){_treOrdem.asc=!_treOrdem.asc;}else{_treOrdem.col=col;_treOrdem.asc=true;}renderTre();}
+function filtrarTre(){
+  _treBusca=(document.getElementById('tre-busca')?document.getElementById('tre-busca').value||'':'').toLowerCase();
+  _treFiltroMes=document.getElementById('tre-filtro-mes')?document.getElementById('tre-filtro-mes').value:'';
+  _treFiltroAno=document.getElementById('tre-filtro-ano')?document.getElementById('tre-filtro-ano').value:'';
+  renderTre();
+}
+function limparFiltroTre(){
+  _treBusca='';_treFiltroMes='';_treFiltroAno='';
+  ['tre-busca','tre-filtro-mes','tre-filtro-ano'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  renderTre();
+}
+function sincScrollTre(){
+  var top=document.getElementById('tre-scroll-top');var wrap=document.getElementById('tre-tbl-wrap');
+  if(!top||!wrap)return;
+  var inner=document.getElementById('tre-scroll-inner');if(inner)inner.style.width=wrap.scrollWidth+'px';
+  top.onscroll=function(){wrap.scrollLeft=top.scrollLeft;};
+  wrap.onscroll=function(){top.scrollLeft=wrap.scrollLeft;};
+}
+function exportarTre(){
+  if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
+  var dados=_treCache.filter(function(r){
+    if(_treFiltroMes&&r.mes!==_treFiltroMes)return false;
+    if(_treFiltroAno&&String(r.ano)!==String(_treFiltroAno))return false;
+    if(_treBusca){var txt=[r.ano,r.mes,r.cliente,r.analista,r.status].join(' ').toLowerCase();if(!txt.includes(_treBusca))return false;}
+    return true;
+  });
+  if(!dados.length){toast('Nenhum dado.','err');return;}
+  var rows=dados.map(function(r){return{
+    'Ano':r.ano,'Mês':r.mes,'Data':r.data_treinamento||'',
+    'Cliente':r.cliente||'','Regional':r.regional?r.regional.sigla:'',
+    'Coordenador':r.coordenador?r.coordenador.nome:'',
+    'Analista':r.analista||'','Status':r.status||'','Observação':r.observacao||''
+  };});
+  var ws=window.XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:8},{wch:12},{wch:14},{wch:30},{wch:10},{wch:22},{wch:20},{wch:16},{wch:36}];
+  var wb=window.XLSX.utils.book_new();
+  window.XLSX.utils.book_append_sheet(wb,ws,'Treinamentos');
+  window.XLSX.writeFile(wb,'Treinamentos_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.xlsx');
+  toast('Excel gerado!','ok');
+}
+function baixarModeloTre(){
+  if(!window.XLSX){toast('Biblioteca não carregada.','err');return;}
+  var X=window.XLSX;var wb=X.utils.book_new();
+  var ws=X.utils.aoa_to_sheet([
+    ['Ano*','Mês*','Data*','Cliente (Departamento)','Regional (sigla)','Coordenador (nome)','Analista','Status*','Observação'],
+    [2025,'MAIO',new Date(2025,4,15),'BRASILIT FACILITIES - PE','PE','ANGÉLICA','TEREZA','Realizado','Treinamento de integração'],
+    [2025,'MAIO',new Date(2025,4,20),'AMBEV AGUDOS','SP','ANA GESTORA','VITÓRIA','Agendado','']
+  ]);
+  ['C2','C3'].forEach(function(cell){if(ws[cell]){ws[cell].t='d';ws[cell].z='dd/mm/yyyy';}});
+  ws['!cols']=[{wch:8},{wch:12},{wch:14},{wch:30},{wch:14},{wch:22},{wch:16},{wch:16},{wch:36}];
+  X.utils.book_append_sheet(wb,ws,'Treinamentos');
+  X.writeFile(wb,'Modelo_Treinamentos.xlsx');
+  toast('Modelo baixado!','ok');
+}
+async function importarTre(input){
+  if(!input.files||!input.files[0])return;
+  toast('Lendo planilha...','');
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      var wb=window.XLSX.read(e.target.result,{type:'array',cellDates:true,dateNF:'dd/mm/yyyy'});
+      var rows=window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false,dateNF:'dd/mm/yyyy'});
+      if(!rows.length){toast('Planilha vazia.','err');return;}
+      var payload=[];var erros=[];
+      var mapReg={'PE':1,'SP':2,'ADM':3};
+      var statusValidos=['Realizado','Não Realizado','Agendado','Cancelado'];
+      rows.forEach(function(r,i){
+        var ano=parseInt(r['Ano*']||r['Ano'])||0;
+        var mes=String(r['Mês*']||r['Mês']||'').trim().toUpperCase();
+        var status=String(r['Status*']||r['Status']||'').trim();
+        if(!ano||!mes||!status){erros.push('Linha '+(i+2)+': Ano, Mês e Status obrigatórios');return;}
+        if(!statusValidos.includes(status)){erros.push('Linha '+(i+2)+': Status inválido "'+status+'"');return;}
+        var dtTre=parseDtImport(r['Data*']||r['Data']);
+        if(dtTre==='INVALIDA'){erros.push('Linha '+(i+2)+': Data inválida');return;}
+        var regSigla=String(r['Regional (sigla)']||r['Regional']||'').trim().toUpperCase();
+        var coordNome=String(r['Coordenador (nome)']||r['Coordenador']||'').trim();
+        var coordObj=_coordsCache.find(function(x){return x.nome.toUpperCase()===coordNome.toUpperCase();});
+        payload.push({
+          ano:ano,mes:mes,
+          data_treinamento:dtTre,
+          cliente:String(r['Cliente (Departamento)']||r['Cliente']||'').trim()||null,
+          regional_id:mapReg[regSigla]||null,
+          coordenador_id:coordObj?coordObj.id:null,
+          analista:String(r['Analista']||'').trim()||null,
+          status:status,
+          observacao:String(r['Observação']||r['Observacao']||'').trim()||null
+        });
+      });
+      if(erros.length){toast(erros.length+' erro(s): '+erros.slice(0,3).join(' | '),'err');return;}
+      if(!payload.length){toast('Nenhum dado válido.','err');return;}
+      toast('Importando '+payload.length+' registros...','');
+      var tamLote=500;
+      for(var i=0;i<payload.length;i+=tamLote){
+        var res=await db.from('treinamentos').insert(payload.slice(i,i+tamLote));
+        if(res.error){toast('Erro: '+res.error.message,'err');input.value='';return;}
+      }
+      toast(payload.length+' treinamentos importados!','ok');
+      carregarTreinamentos();atualizarContadores();
+    }catch(err){toast('Erro: '+err.message,'err');}
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+  input.value='';
+}
+async function salvarTreinamento(){
+  var ano=parseInt(document.getElementById('tre-ano').value);
+  var mes=document.getElementById('tre-mes').value;
+  var status=document.getElementById('tre-status').value;
+  var data=document.getElementById('tre-data').value;
+  if(!ano||!mes||!status||!data){toast('Preencha Ano, Mês, Data e Status.','err');return;}
+  if(!validarDatasForm(['tre-data'])){toast('Verifique a data em vermelho.','err');return;}
+  setBtnLoad('btn-tre',true);
+  var cliEl=document.getElementById('tre-cliente');
+  var cliNome=cliEl.options[cliEl.selectedIndex]?cliEl.options[cliEl.selectedIndex].text:'';
+  var res=await db.from('treinamentos').insert({
+    ano:ano,mes:mes,data_treinamento:data,
+    cliente:cliNome||null,
+    regional_id:parseInt(document.getElementById('tre-regional').value)||null,
+    coordenador_id:parseInt(document.getElementById('tre-coord').value)||null,
+    analista:document.getElementById('tre-analista').value||null,
+    status:status,
+    observacao:document.getElementById('tre-obs').value||null
+  });
+  setBtnLoad('btn-tre',false);
+  if(res.error){toast('Erro: '+res.error.message,'err');}
+  else{toast('Treinamento salvo!','ok');limpar('tre');carregarTreinamentos();atualizarContadores();}
+}
 async function salvarMeta(tipo){var map={hcp:{p:'mhcp',tb:'metas_hcp'},abs:{p:'mabs',tb:'metas_absenteismo'},turn:{p:'mturn',tb:'metas_turnover'},tre:{p:'mtre',tb:'metas_treinamento'}};var cfg=map[tipo];if(!cfg)return;var mes=document.getElementById(cfg.p+'-mes').value;var ano=parseInt(document.getElementById(cfg.p+'-ano').value);if(!mes||!ano){toast('Preencha Mês e Ano.','err');return;}var payload={ano:ano,mes:mes};if(tipo==='tre'){payload.qtd_treinamentos_esperados=parseInt(document.getElementById('mtre-qtd').value)||8;payload.meta_alcance=parseFloat(document.getElementById('mtre-meta').value)||0.9;}else{payload.meta=parseFloat(document.getElementById(cfg.p+'-meta').value)||0;}var res=await db.from(cfg.tb).upsert(payload,{onConflict:'ano,mes'});if(res.error){toast('Erro: '+res.error.message,'err');}else{toast('Meta salva!','ok');}}
 async function del(tabela,id,cb,isText){if(!confirm('Excluir este registro?'))return;var q=db.from(tabela).delete();var res=await (isText?q.eq('matricula',id):q.eq('id',id));if(res.error){toast('Erro ao excluir.','err');}else{toast('Excluído.','ok');cb();}}
 
@@ -1170,14 +1407,15 @@ window.addEventListener('load',async function(){
   document.getElementById('top-email').textContent=sessao.data.session.user.email;
   document.getElementById('loading').style.display='none';
   document.getElementById('app').style.display='flex';
-  popularMes(['hcp-mes','abs-mes','cal-mes','mhcp-mes','mabs-mes','mturn-mes','mtre-mes']);
-  setMesAno(['hcp-mes','abs-mes','cal-mes','mhcp-mes','mabs-mes','mturn-mes','mtre-mes'],['hcp-ano','abs-ano','cal-ano','mhcp-ano','mabs-ano','mturn-ano','mtre-ano']);
+  popularMes(['hcp-mes','abs-mes','cal-mes','tre-mes','mhcp-mes','mabs-mes','mturn-mes','mtre-mes']);
+  setMesAno(['hcp-mes','abs-mes','cal-mes','tre-mes','mhcp-mes','mabs-mes','mturn-mes','mtre-mes'],['hcp-ano','abs-ano','cal-ano','tre-ano','mhcp-ano','mabs-ano','mturn-ano','mtre-ano']);
   try{await carregarRefs();}catch(e){console.warn('refs',e);}
   try{await carregarHcp();}catch(e){console.warn('hcp',e);}
   try{await carregarFaltas();}catch(e){console.warn('faltas',e);}
   try{await carregarCalendario();}catch(e){console.warn('cal',e);}
   try{await carregarColaboradores();}catch(e){console.warn('col',e);}
   try{await carregarDepartamentos();}catch(e){console.warn('deptos',e);}
+  try{await carregarTreinamentos();}catch(e){console.warn('tre',e);}
   try{await atualizarContadores();}catch(e){console.warn('cnt',e);}
 });
 </script>
