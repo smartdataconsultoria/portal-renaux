@@ -352,6 +352,10 @@ var SB_URL = 'https://rbahvyejqybajnufftio.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
 var SB_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDA2MDkyMiwiZXhwIjoyMDg5NjM2OTIyfQ.LSvsUoFXOeEclanyvPymI_StFQNLxglMTxfbo-Y8kbU';
 var ADMIN = 'tecnologia@smartdataconsultoria.com';
+var DIRETORES_RENAUX = ['fabio@renauxservice.com.br','diego@renauxservice.com.br'];
+function isAdmin(email){ return email === ADMIN; }
+function isDiretorRenaux(email){ return DIRETORES_RENAUX.indexOf(email) >= 0; }
+function podeVerTudo(email){ return isAdmin(email); }
 var sb = supabase.createClient(SB_URL, SB_KEY);
 var usr = null, todosUsuarios=[], todosDashboards=[], todosArquivos=[], _muEmail='';
 
@@ -386,7 +390,7 @@ async function entrarApp(){
   document.getElementById('greetingText').innerHTML=gerarSaudacao(nome);
   if(empresa){var el=document.getElementById('topBadge');el.textContent=empresa;el.style.display='';}
 
-  if(usr.email===ADMIN){document.getElementById('btnAdmin').style.display='';carregarAdmin().catch(function(){});}
+  if(isAdmin(usr.email)){document.getElementById('btnAdmin').style.display='';carregarAdmin().catch(function(){});}
 
   await carregarDashboards();
   await carregarArquivos();
@@ -395,7 +399,19 @@ async function entrarApp(){
 async function carregarDashboards(){
   try {
     var url=SB_URL+'/rest/v1/dashboards_clientes?select=*&order=categoria';
-    if(usr.email!==ADMIN) url+='&email_cliente=eq.'+encodeURIComponent(usr.email);
+    if(isAdmin(usr.email)){
+      // admin vê tudo — sem filtro
+    } else if(isDiretorRenaux(usr.email)){
+      // diretores Renaux veem todos os dashboards de usuários Renaux
+      // busca emails de todos os usuários da empresa Renaux e filtra
+      var rUsers=await fetch(SB_URL+'/rest/v1/usuarios_portal?select=email&empresa=eq.Renaux',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+usr.token}});
+      var usersRenaux=rUsers.ok?(await rUsers.json()):[];
+      var emails=usersRenaux.map(function(u){return u.email;});
+      if(!emails.length){url+='&email_cliente=eq.'+encodeURIComponent(usr.email);}
+      else{url+='&email_cliente=in.('+emails.map(encodeURIComponent).join(',')+')'; }
+    } else {
+      url+='&email_cliente=eq.'+encodeURIComponent(usr.email);
+    }
     var res=await fetch(url,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+usr.token}});
     if(!res.ok) throw new Error('HTTP '+res.status);
     var data=await res.json()||[];
@@ -420,7 +436,17 @@ async function carregarArquivos(){
   var grid=document.getElementById('arq-grid');
   try {
     var url=SB_URL+'/rest/v1/arquivos_clientes?select=*&order=nome';
-    if(usr.email!==ADMIN) url+='&email_cliente=eq.'+encodeURIComponent(usr.email);
+    if(isAdmin(usr.email)){
+      // admin vê tudo
+    } else if(isDiretorRenaux(usr.email)){
+      var rUsers2=await fetch(SB_URL+'/rest/v1/usuarios_portal?select=email&empresa=eq.Renaux',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+usr.token}});
+      var usersRenaux2=rUsers2.ok?(await rUsers2.json()):[];
+      var emails2=usersRenaux2.map(function(u){return u.email;});
+      if(!emails2.length){url+='&email_cliente=eq.'+encodeURIComponent(usr.email);}
+      else{url+='&email_cliente=in.('+emails2.map(encodeURIComponent).join(',')+')'; }
+    } else {
+      url+='&email_cliente=eq.'+encodeURIComponent(usr.email);
+    }
     var res=await fetch(url,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+usr.token}});
     if(!res.ok) throw new Error();
     var lista=await res.json()||[];
