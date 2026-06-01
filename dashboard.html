@@ -415,6 +415,13 @@ async function carregarDashboards(){
     var res=await fetch(url,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+usr.token}});
     if(!res.ok) throw new Error('HTTP '+res.status);
     var data=await res.json()||[];
+    // deduplicar por URL — remove cópias vinculadas a múltiplos usuários
+    var vistas={};
+    var data=data.filter(function(d){
+      var chave=(d.url||'')+'__'+(d.titulo||'');
+      if(vistas[chave]) return false;
+      vistas[chave]=true; return true;
+    });
     renderDashboards(data);
   }catch(e){ document.getElementById('dash-grid').innerHTML='<div class="empty-state"><p>Nenhum dashboard disponível.</p></div>'; }
 }
