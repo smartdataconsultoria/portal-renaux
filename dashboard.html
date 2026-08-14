@@ -447,28 +447,66 @@ table tbody tr:hover{background:var(--gold-glow)}
   </div>
 </div>
 
-<!-- SUPABASE - Carregar PRIMEIRO (sincronamente, sem defer) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- SUPABASE - CARREGAR POR ÚLTIMO, NO FINAL DO BODY -->
+<!-- Isso garante que TUDO está pronto antes de usar supabase -->
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="initializeApp()"></script>
 
 <script>
-// Esperar Supabase estar disponível
-function waitForSupabase() {
-  return new Promise(function(resolve) {
-    if(typeof supabase !== 'undefined') {
-      resolve();
-    } else {
-      setTimeout(function() { waitForSupabase().then(resolve); }, 100);
-    }
-  });
-}
+console.log('🟡 [INIT] Script de inicialização carregado');
 
-// Função para atualizar status visual
-function updateLoadingStatus(text, color) {
-  var el = document.getElementById('loading-status');
-  if(el) {
-    el.innerHTML = '<p style="color:' + (color || 'var(--text-muted)') + '">' + text + '</p>';
+// Inicializar app APENAS depois que Supabase carrega
+function initializeApp() {
+  console.log('✅ [SUPABASE LOADED] Script onload dispara');
+  
+  if(typeof supabase === 'undefined') {
+    console.error('❌ Supabase ainda não está disponível!');
+    setTimeout(initializeApp, 100);
+    return;
+  }
+  
+  try {
+    console.log('🔧 Criando cliente Supabase...');
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    console.log('✓ Cliente criado');
+    
+    console.log('📊 Iniciando aplicação...');
+    loadApplication();
+  } catch(e) {
+    console.error('❌ Erro ao inicializar:', e);
   }
 }
+
+// Função para carregar a aplicação
+async function loadApplication() {
+  try {
+    var saved = localStorage.getItem('refreshInterval');
+    if(saved) REFRESH_CONFIG.interval = parseInt(saved) * 1000;
+    
+    console.log('🔐 Verificando sessão...');
+    var {data:{session}} = await sb.auth.getSession();
+    
+    if(!session) {
+      console.log('❌ Nenhuma sessão encontrada');
+      window.location.href = './login.html';
+      return;
+    }
+    
+    console.log('✅ Usuário:', session.user.email);
+    usr = {email: session.user.email, token: session.access_token};
+    
+    console.log('🚀 Carregando componentes...');
+    await entrarApp();
+    
+    console.log('✅✅✅ APP PRONTO! ✅✅✅');
+  } catch(e) {
+    console.error('❌ ERRO ao carregar:', e);
+    setTimeout(() => window.location.href = './login.html', 1000);
+  }
+}
+</script>
+
+</body>
+</html>
 
 // ============ SISTEMA DE REFRESH AUTOMÁTICO ============
 const REFRESH_CONFIG = {
@@ -687,93 +725,7 @@ async function removerArqUsuario(id){if(!confirm('Remover?'))return;try{await sb
 function esc(s){var div=document.createElement('div');div.textContent=s;return div.innerHTML;}
 function toast(m,t){var el=document.createElement('div');el.className='toast '+t;el.textContent=m;document.body.appendChild(el);setTimeout(function(){el.remove();},4000);}
 
-// Carregar configuração de refresh do localStorage
-var loadingAttempt = 0;
-var lastRedirect = 0;
-var redirectCount = 0;
-
-window.addEventListener('load',async function(){
-  loadingAttempt++;
-  console.log('🟡 Tentativa de carregamento #' + loadingAttempt);
-  updateLoadingStatus('⏳ Tentativa #' + loadingAttempt);
-  
-  try{
-    // PROTEÇÃO CONTRA LOOP
-    var now = Date.now();
-    if(now - lastRedirect < 1000) {
-      redirectCount++;
-      console.log('⚠️ Redirecionamento rápido detectado! Contagem:', redirectCount);
-      updateLoadingStatus('⚠️ Aviso: Redirecionamentos rápidos (#' + redirectCount + ')', 'var(--danger)');
-      if(redirectCount > 3) {
-        console.error('🛑 LOOP INFINITO DETECTADO! Parando redirecionamentos.');
-        updateLoadingStatus('❌ Loop infinito detectado! Limpe o cache (Ctrl+Shift+Delete)', 'var(--danger)');
-        document.body.innerHTML = '<div style="padding:40px;font-family:Arial;text-align:center;color:#e05555;"><h2>❌ Erro: Loop de Redirecionamento</h2><p>A página está trocando entre login e dashboard.</p><p><strong>Solução:</strong> Limpe o cache: Ctrl+Shift+Delete</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#c8922a;border:none;color:#000;border-radius:6px;cursor:pointer;font-weight:bold">Tentar Novamente</button></div>';
-        return;
-      }
-    } else {
-      redirectCount = 0;
-    }
-    lastRedirect = now;
-    
-    // Aguardar Supabase carregar
-    console.log('⏳ Aguardando Supabase estar disponível...');
-    updateLoadingStatus('⏳ Carregando Supabase...');
-    await waitForSupabase();
-    console.log('✓ Supabase disponível');
-    updateLoadingStatus('✓ Supabase carregado');
-    
-    // Inicializar Supabase
-    console.log('🔌 Criando cliente Supabase...');
-    updateLoadingStatus('🔌 Inicializando cliente...');
-    sb=supabase.createClient(SB_URL,SB_KEY);
-    console.log('✓ Cliente criado');
-    updateLoadingStatus('✓ Cliente Supabase pronto');
-    
-    var saved=localStorage.getItem('refreshInterval');
-    if(saved)REFRESH_CONFIG.interval=parseInt(saved)*1000;
-    
-    console.log('🔐 Buscando sessão do Supabase...');
-    updateLoadingStatus('🔐 Verificando autenticação...');
-    var {data:{session}} = await sb.auth.getSession();
-    
-    if(session) {
-      console.log('✅ SESSÃO ENCONTRADA!');
-      console.log('   Email:', session.user.email);
-      console.log('   Token válido:', !!session.access_token);
-      console.log('   Expira em:', new Date(session.expires_at * 1000).toLocaleString('pt-BR'));
-      updateLoadingStatus('✅ Sessão encontrada<br>' + session.user.email, 'var(--green)');
-    } else {
-      console.log('❌ NENHUMA SESSÃO ENCONTRADA');
-      console.log('   Redirecionando para login...');
-      updateLoadingStatus('❌ Nenhuma sessão ativa<br>Redirecionando...', 'var(--danger)');
-      setTimeout(function() {
-        window.location.href='./login.html';
-      }, 500);
-      return;
-    }
-    
-    usr={email:session.user.email,token:session.access_token};
-    console.log('👤 Usuário configurado:', usr.email);
-    
-    console.log('📊 Carregando aplicação...');
-    updateLoadingStatus('📊 Carregando dashboards...');
-    await entrarApp();
-    console.log('✅ SUCESSO! App carregado completamente!');
-    updateLoadingStatus('✅ Aplicação carregada!', 'var(--green)');
-    
-  }catch(e){
-    console.error('❌ ERRO CRÍTICO:', e.message);
-    console.error('   Tipo:', e.name);
-    console.error('   Stack:', e.stack);
-    updateLoadingStatus('❌ Erro: ' + e.message, 'var(--danger)');
-    
-    // Aguardar 1 segundo antes de redirecionar para evitar loop
-    setTimeout(function() {
-      console.log('   Redirecionando para login...');
-      window.location.href='./login.html';
-    }, 1000);
-  }
-});
+// Carregamento será iniciado pelo onload do script Supabase abaixo
 </script>
 
 </body>
