@@ -454,6 +454,25 @@ table tbody tr:hover{background:var(--gold-glow)}
 <script>
 console.log('🟡 [INIT] Script de inicialização carregado');
 
+// ========== VARIÁVEIS GLOBAIS ==========
+   var SB_URL = 'https://bahvyeqybajnufftio.supabase.co';
+   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaHZ5ZXF5YmFqbnVmZnRpbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE4OTg3MDQ4LCJleHAiOjIwMzQ1NjMwNDh9.c8z0Zq3H7zU7iVe7Iy0H4t8Q3R2P1O5N8M7L6K9J0A';
+   var SB_SVC = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaHZ5ZXF5YmFqbnVmZnRpbyIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE3MTg5ODcwNDgsImV4cCI6MjAzNDU2MzA0OH0.EhqFeH3pA4z9R8V2K7L3M9N6O5P4Q3R2S1T0U9V8W7';
+   var sb = null;
+   var usr = {};
+   var todosUsuarios = [], todosDashboards = [], todosArquivos = [];
+   var _muEmail = '';
+   
+   const REFRESH_CONFIG = {
+     interval: 300000,
+     enabled: true,
+     lastRefresh: null,
+     nextRefresh: null,
+     syncedCount: 0,
+     totalDashboards: 0,
+     refreshTimers: {}
+   };
+
 // Inicializar app APENAS depois que Supabase carrega
 function initializeApp() {
   console.log('✅ [SUPABASE LOADED] Script onload dispara');
