@@ -179,6 +179,9 @@ table tbody tr:hover{background:var(--gold-glow)}
 <div id="tela-loading">
   <div class="loading-logo">RENAUX <span>SERVICE</span></div>
   <div class="spinner"></div>
+  <div id="loading-status" style="font-size:12px;color:var(--text-muted);margin-top:20px;text-align:center;max-width:300px;line-height:1.6">
+    <p>Inicializando...</p>
+  </div>
 </div>
 
 <!-- APP -->
@@ -459,6 +462,14 @@ function waitForSupabase() {
   });
 }
 
+// Função para atualizar status visual
+function updateLoadingStatus(text, color) {
+  var el = document.getElementById('loading-status');
+  if(el) {
+    el.innerHTML = '<p style="color:' + (color || 'var(--text-muted)') + '">' + text + '</p>';
+  }
+}
+
 // ============ SISTEMA DE REFRESH AUTOMÁTICO ============
 const REFRESH_CONFIG = {
   interval: 300000, // 5 minutos em ms
@@ -677,22 +688,91 @@ function esc(s){var div=document.createElement('div');div.textContent=s;return d
 function toast(m,t){var el=document.createElement('div');el.className='toast '+t;el.textContent=m;document.body.appendChild(el);setTimeout(function(){el.remove();},4000);}
 
 // Carregar configuração de refresh do localStorage
+var loadingAttempt = 0;
+var lastRedirect = 0;
+var redirectCount = 0;
+
 window.addEventListener('load',async function(){
+  loadingAttempt++;
+  console.log('🟡 Tentativa de carregamento #' + loadingAttempt);
+  updateLoadingStatus('⏳ Tentativa #' + loadingAttempt);
+  
   try{
+    // PROTEÇÃO CONTRA LOOP
+    var now = Date.now();
+    if(now - lastRedirect < 1000) {
+      redirectCount++;
+      console.log('⚠️ Redirecionamento rápido detectado! Contagem:', redirectCount);
+      updateLoadingStatus('⚠️ Aviso: Redirecionamentos rápidos (#' + redirectCount + ')', 'var(--danger)');
+      if(redirectCount > 3) {
+        console.error('🛑 LOOP INFINITO DETECTADO! Parando redirecionamentos.');
+        updateLoadingStatus('❌ Loop infinito detectado! Limpe o cache (Ctrl+Shift+Delete)', 'var(--danger)');
+        document.body.innerHTML = '<div style="padding:40px;font-family:Arial;text-align:center;color:#e05555;"><h2>❌ Erro: Loop de Redirecionamento</h2><p>A página está trocando entre login e dashboard.</p><p><strong>Solução:</strong> Limpe o cache: Ctrl+Shift+Delete</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 20px;background:#c8922a;border:none;color:#000;border-radius:6px;cursor:pointer;font-weight:bold">Tentar Novamente</button></div>';
+        return;
+      }
+    } else {
+      redirectCount = 0;
+    }
+    lastRedirect = now;
+    
     // Aguardar Supabase carregar
+    console.log('⏳ Aguardando Supabase estar disponível...');
+    updateLoadingStatus('⏳ Carregando Supabase...');
     await waitForSupabase();
+    console.log('✓ Supabase disponível');
+    updateLoadingStatus('✓ Supabase carregado');
     
     // Inicializar Supabase
+    console.log('🔌 Criando cliente Supabase...');
+    updateLoadingStatus('🔌 Inicializando cliente...');
     sb=supabase.createClient(SB_URL,SB_KEY);
+    console.log('✓ Cliente criado');
+    updateLoadingStatus('✓ Cliente Supabase pronto');
     
     var saved=localStorage.getItem('refreshInterval');
     if(saved)REFRESH_CONFIG.interval=parseInt(saved)*1000;
     
-    var {data:{session}}=await sb.auth.getSession();
-    if(!session){window.location.href='./login.html';return;}
+    console.log('🔐 Buscando sessão do Supabase...');
+    updateLoadingStatus('🔐 Verificando autenticação...');
+    var {data:{session}} = await sb.auth.getSession();
+    
+    if(session) {
+      console.log('✅ SESSÃO ENCONTRADA!');
+      console.log('   Email:', session.user.email);
+      console.log('   Token válido:', !!session.access_token);
+      console.log('   Expira em:', new Date(session.expires_at * 1000).toLocaleString('pt-BR'));
+      updateLoadingStatus('✅ Sessão encontrada<br>' + session.user.email, 'var(--green)');
+    } else {
+      console.log('❌ NENHUMA SESSÃO ENCONTRADA');
+      console.log('   Redirecionando para login...');
+      updateLoadingStatus('❌ Nenhuma sessão ativa<br>Redirecionando...', 'var(--danger)');
+      setTimeout(function() {
+        window.location.href='./login.html';
+      }, 500);
+      return;
+    }
+    
     usr={email:session.user.email,token:session.access_token};
+    console.log('👤 Usuário configurado:', usr.email);
+    
+    console.log('📊 Carregando aplicação...');
+    updateLoadingStatus('📊 Carregando dashboards...');
     await entrarApp();
-  }catch(e){console.error('Erro ao carregar app:',e);window.location.href='./login.html';}
+    console.log('✅ SUCESSO! App carregado completamente!');
+    updateLoadingStatus('✅ Aplicação carregada!', 'var(--green)');
+    
+  }catch(e){
+    console.error('❌ ERRO CRÍTICO:', e.message);
+    console.error('   Tipo:', e.name);
+    console.error('   Stack:', e.stack);
+    updateLoadingStatus('❌ Erro: ' + e.message, 'var(--danger)');
+    
+    // Aguardar 1 segundo antes de redirecionar para evitar loop
+    setTimeout(function() {
+      console.log('   Redirecionando para login...');
+      window.location.href='./login.html';
+    }, 1000);
+  }
 });
 </script>
 
