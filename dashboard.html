@@ -444,7 +444,10 @@ table tbody tr:hover{background:var(--gold-glow)}
   </div>
 </div>
 
-<script>
+<!-- SUPABASE - Carregar PRIMEIRO -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script defer>
 // ============ SISTEMA DE REFRESH AUTOMÁTICO ============
 const REFRESH_CONFIG = {
   interval: 300000, // 5 minutos em ms
@@ -675,9 +678,6 @@ window.addEventListener('load',async function(){
   }catch(e){window.location.href='./login.html';}
 });
 </script>
-
-<!-- SUPABASE -->
-<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </body>
 </html>
