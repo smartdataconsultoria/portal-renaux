@@ -444,10 +444,21 @@ table tbody tr:hover{background:var(--gold-glow)}
   </div>
 </div>
 
-<!-- SUPABASE - Carregar PRIMEIRO -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- SUPABASE - Carregar PRIMEIRO (sincronamente, sem defer) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script defer>
+<script>
+// Esperar Supabase estar disponível
+function waitForSupabase() {
+  return new Promise(function(resolve) {
+    if(typeof supabase !== 'undefined') {
+      resolve();
+    } else {
+      setTimeout(function() { waitForSupabase().then(resolve); }, 100);
+    }
+  });
+}
+
 // ============ SISTEMA DE REFRESH AUTOMÁTICO ============
 const REFRESH_CONFIG = {
   interval: 300000, // 5 minutos em ms
@@ -463,7 +474,7 @@ const REFRESH_CONFIG = {
 var SB_URL='https://bahvyeqybajnufftio.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaHZ5ZXF5YmFqbnVmZnRpbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE4OTg3MDQ4LCJleHAiOjIwMzQ1NjMwNDh9.c8z0Zq3H7zU7iVe7Iy0H4t8Q3R2P1O5N8M7L6K9J0A';
 var SB_SVC='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaHZ5ZXF5YmFqbnVmZnRpbyIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE3MTg5ODcwNDgsImV4cCI6MjAzNDU2MzA0OH0.EhqFeH3pA4z9R8V2K7L3M9N6O5P4Q3R2S1T0U9V8W7';
-var sb=supabase.createClient(SB_URL,SB_KEY);
+var sb=null;
 var usr={};
 var todosUsuarios=[],todosDashboards=[],todosArquivos=[];
 var _muEmail='';
@@ -668,6 +679,12 @@ function toast(m,t){var el=document.createElement('div');el.className='toast '+t
 // Carregar configuração de refresh do localStorage
 window.addEventListener('load',async function(){
   try{
+    // Aguardar Supabase carregar
+    await waitForSupabase();
+    
+    // Inicializar Supabase
+    sb=supabase.createClient(SB_URL,SB_KEY);
+    
     var saved=localStorage.getItem('refreshInterval');
     if(saved)REFRESH_CONFIG.interval=parseInt(saved)*1000;
     
@@ -675,7 +692,7 @@ window.addEventListener('load',async function(){
     if(!session){window.location.href='./login.html';return;}
     usr={email:session.user.email,token:session.access_token};
     await entrarApp();
-  }catch(e){window.location.href='./login.html';}
+  }catch(e){console.error('Erro ao carregar app:',e);window.location.href='./login.html';}
 });
 </script>
 
