@@ -9,9 +9,10 @@ async function iniciarApp() {
   if(!session) return;
   
   // 3. Preencher dados do usuário
-  const userName = session.user.email.split('@')[0];
+  const email = session.user.email;
+  const userName = email.split('@')[0].toUpperCase();
   document.getElementById('user-name').textContent = userName;
-  document.getElementById('user-email').textContent = session.user.email;
+  document.getElementById('user-email').textContent = email;
   
   // 4. Atualizar data
   const now = new Date();
@@ -19,10 +20,25 @@ async function iniciarApp() {
   const dateStr = now.toLocaleDateString('pt-BR', options);
   document.getElementById('current-date').textContent = dateStr;
   
-  // 5. Carregar dashboards
-  await carregarDashboards(session.user.email);
+  // 5. Adicionar saudação dinâmica com hora do dia
+  const hora = now.getHours();
+  let saudacao = '';
   
-  // 6. Renderizar categorias e dashboards
+  if(hora >= 5 && hora < 12) {
+    saudacao = 'Bom dia';
+  } else if(hora >= 12 && hora < 18) {
+    saudacao = 'Boa tarde';
+  } else {
+    saudacao = 'Boa noite';
+  }
+  
+  const greetingTitle = document.querySelector('.greeting-title');
+  greetingTitle.textContent = saudacao + ', ' + userName + '! 👋';
+  
+  // 6. Carregar dashboards
+  await carregarDashboards(email);
+  
+  // 7. Renderizar categorias e dashboards
   renderizarCategorias();
   
   console.log('✅ App pronto!');
