@@ -31,7 +31,6 @@ body {
   height: 100vh;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 260px;
   background: var(--navy-mid);
@@ -149,7 +148,6 @@ body {
   color: var(--navy);
 }
 
-/* MAIN CONTENT */
 .main {
   flex: 1;
   display: flex;
@@ -329,7 +327,6 @@ body {
 <body>
 
 <div class="container">
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="logo-text">RENAUX <span>SERVICE</span></div>
@@ -350,7 +347,6 @@ body {
     </div>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="header">
       <div class="header-title">
@@ -363,7 +359,7 @@ body {
     <div class="content">
       <div class="greeting">
         <div class="greeting-title">Bem-vindo! 👋</div>
-        <div class="greeting-subtitle" id="greeting-subtitle">Selecione uma categoria para visualizar os dashboards</div>
+        <div class="greeting-subtitle" id="greeting-subtitle">Carregando categorias...</div>
       </div>
 
       <div id="dashboard-grid"></div>
@@ -371,11 +367,9 @@ body {
   </div>
 </div>
 
-<!-- SCRIPT -->
 <script>
 console.log('🟡 [INIT] Script iniciado');
 
-// ========== VARIÁVEIS GLOBAIS ==========
 var SB_URL = 'https://rbahvyejqybajnufftio.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2ZWpxeWJham51ZmZ0aW8iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3NDA2MDkyMiwiZXhwIjoyMDg5NjM2OTIyfQ.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
 var sb = null;
@@ -383,68 +377,94 @@ var usr = {};
 var todosDashboards = [];
 var categoriaAtiva = null;
 
-console.log('✓ Variáveis definidas');
-
-// ========== FUNÇÕES ==========
+console.log('✓ Variáveis globais definidas');
 
 function iniciarApp() {
-  console.log('✅ [SUPABASE LOADED] Supabase carregado');
+  console.log('✅ [SUPABASE LOADED] Biblioteca carregada');
   
   if(typeof supabase === 'undefined') {
-    console.error('❌ Supabase indefinido');
+    console.error('❌ Supabase indefinido, tentando novamente...');
     setTimeout(iniciarApp, 100);
     return;
   }
   
   try {
-    console.log('🔧 Criando cliente...');
+    console.log('🔧 Criando cliente Supabase...');
     sb = supabase.createClient(SB_URL, SB_KEY);
-    console.log('✓ Cliente criado');
+    console.log('✓ Cliente criado com sucesso');
     carregarAplicacao();
   } catch(e) {
-    console.error('❌ Erro:', e.message);
+    console.error('❌ Erro ao criar cliente:', e.message);
   }
 }
 
 async function carregarAplicacao() {
   try {
-    console.log('🔐 Verificando sessão...');
+    console.log('🔐 Verificando autenticação...');
     
     var {data:{session}} = await sb.auth.getSession();
     
     if(!session) {
-      console.log('❌ Sem sessão');
-      setTimeout(() => window.location.href = './login.html', 1000);
+      console.log('❌ Nenhuma sessão encontrada, redirecionando...');
+      document.getElementById('greeting-subtitle').textContent = 'Redirecionando para login...';
+      setTimeout(() => window.location.href = './login.html', 1500);
       return;
     }
     
-    console.log('✅ Autenticado:', session.user.email);
+    console.log('✅ Autenticado como:', session.user.email);
     usr = {email: session.user.email, token: session.access_token};
     
     document.getElementById('user-name').textContent = session.user.email.split('@')[0];
     document.getElementById('user-email').textContent = session.user.email;
     
-    // Atualizar data
     var now = new Date();
     var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     var dateStr = now.toLocaleDateString('pt-BR', options);
     document.getElementById('current-date').textContent = dateStr;
     
-    console.log('📊 Carregando dashboards...');
-    var headers = {'apikey': SB_KEY, 'Authorization': 'Bearer ' + usr.token};
-    var resp = await fetch(SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + encodeURIComponent(usr.email), {headers: headers});
+    console.log('📊 Carregando dashboards para:', usr.email);
     
-    if(resp.ok) {
-      todosDashboards = await resp.json();
-      console.log('✓ Carregados:', todosDashboards.length);
+    var headers = {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + usr.token,
+      'Content-Type': 'application/json'
+    };
+    
+    var emailEncoded = encodeURIComponent(usr.email);
+    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded;
+    
+    console.log('🔗 URL da query:', url);
+    
+    var resp = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+    
+    console.log('📡 Status da resposta:', resp.status);
+    
+    if(!resp.ok) {
+      var erro = await resp.text();
+      console.error('❌ Erro na resposta:', resp.status, erro);
+      document.getElementById('greeting-subtitle').textContent = 'Erro ao carregar dashboards: ' + resp.status;
+      return;
+    }
+    
+    todosDashboards = await resp.json();
+    console.log('✓ Carregados', todosDashboards.length, 'dashboards');
+    
+    if(todosDashboards.length === 0) {
+      console.warn('⚠️ Nenhum dashboard encontrado para este usuário');
+      document.getElementById('greeting-subtitle').textContent = 'Nenhum dashboard disponível';
+      return;
     }
     
     renderizarCategorias();
     console.log('✅✅✅ APP PRONTO! ✅✅✅');
     
   } catch(e) {
-    console.error('❌ ERRO:', e);
-    setTimeout(() => window.location.href = './login.html', 2000);
+    console.error('❌ ERRO CRÍTICO:', e);
+    document.getElementById('greeting-subtitle').textContent = 'Erro: ' + e.message;
+    setTimeout(() => window.location.href = './login.html', 3000);
   }
 }
 
@@ -457,8 +477,10 @@ function renderizarCategorias() {
     categorias[cat]++;
   });
   
+  console.log('📂 Categorias encontradas:', Object.keys(categorias));
+  
   var html = '';
-  Object.keys(categorias).forEach(cat => {
+  Object.keys(categorias).sort().forEach(cat => {
     html += '<div class="category-item" onclick="filtrarCategoria(\'' + esc(cat) + '\')">' +
       '<span>📊</span> ' + esc(cat) +
       '</div>';
@@ -466,16 +488,16 @@ function renderizarCategorias() {
   
   document.getElementById('categories-list').innerHTML = html;
   
-  // Carregar primeira categoria
   if(Object.keys(categorias).length > 0) {
-    filtrarCategoria(Object.keys(categorias)[0]);
+    var primeira = Object.keys(categorias).sort()[0];
+    filtrarCategoria(primeira);
   }
 }
 
 function filtrarCategoria(categoria) {
+  console.log('🔍 Filtrando por categoria:', categoria);
   categoriaAtiva = categoria;
   
-  // Atualizar estilo da sidebar
   var items = document.querySelectorAll('.category-item');
   items.forEach(item => {
     if(item.textContent.includes(categoria)) {
@@ -485,13 +507,14 @@ function filtrarCategoria(categoria) {
     }
   });
   
-  // Renderizar dashboards
   renderizarDashboards(categoria);
 }
 
 function renderizarDashboards(categoria) {
   var grid = document.getElementById('dashboard-grid');
   var filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
+  
+  console.log('📊 Renderizando', filtrados.length, 'dashboards da categoria:', categoria);
   
   document.getElementById('greeting-subtitle').textContent = 'Dashboards de ' + esc(categoria);
   
@@ -526,6 +549,7 @@ function esc(s) {
 }
 
 async function sair() {
+  console.log('🚪 Fazendo logout...');
   if(sb) await sb.auth.signOut();
   window.location.href = './login.html';
 }
@@ -533,7 +557,6 @@ async function sair() {
 console.log('✓ Funções definidas');
 </script>
 
-<!-- SUPABASE -->
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
 
 </body>
