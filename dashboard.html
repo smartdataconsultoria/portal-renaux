@@ -214,8 +214,8 @@ function esc(s) {
   return div.innerHTML;
 }
 
-function sair() {
-  if(sb) sb.auth.signOut();
+async function sair() {
+  if(sb) await sb.auth.signOut();
   window.location.href = './login.html';
 }
 
