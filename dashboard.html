@@ -383,35 +383,34 @@ function iniciarApp() {
   console.log('✅ [SUPABASE LOADED] Biblioteca carregada');
   
   if(typeof supabase === 'undefined') {
-    console.error('❌ Supabase indefinido, tentando novamente...');
+    console.error('❌ Supabase indefinido');
     setTimeout(iniciarApp, 100);
     return;
   }
   
   try {
-    console.log('🔧 Criando cliente Supabase...');
+    console.log('🔧 Criando cliente...');
     sb = supabase.createClient(SB_URL, SB_KEY);
-    console.log('✓ Cliente criado com sucesso');
+    console.log('✓ Cliente criado');
     carregarAplicacao();
   } catch(e) {
-    console.error('❌ Erro ao criar cliente:', e.message);
+    console.error('❌ Erro:', e.message);
   }
 }
 
 async function carregarAplicacao() {
   try {
-    console.log('🔐 Verificando autenticação...');
+    console.log('🔐 Verificando sessão...');
     
     var {data:{session}} = await sb.auth.getSession();
     
     if(!session) {
-      console.log('❌ Nenhuma sessão encontrada, redirecionando...');
-      document.getElementById('greeting-subtitle').textContent = 'Redirecionando para login...';
+      console.log('❌ Sem sessão');
       setTimeout(() => window.location.href = './login.html', 1500);
       return;
     }
     
-    console.log('✅ Autenticado como:', session.user.email);
+    console.log('✅ Autenticado:', session.user.email);
     usr = {email: session.user.email, token: session.access_token};
     
     document.getElementById('user-name').textContent = session.user.email.split('@')[0];
@@ -422,44 +421,35 @@ async function carregarAplicacao() {
     var dateStr = now.toLocaleDateString('pt-BR', options);
     document.getElementById('current-date').textContent = dateStr;
     
-    console.log('📊 Carregando dashboards para:', usr.email);
+    console.log('📊 Carregando dashboards...');
     
     var emailEncoded = encodeURIComponent(usr.email);
-    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded;
+    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + SB_KEY;
     
     console.log('🔗 URL:', url);
     
-    var headers = {
-      'Authorization': 'Bearer ' + usr.token,
-      'Content-Type': 'application/json'
-    };
-    
-    console.log('📡 Enviando requisição...');
-    var resp = await fetch(url, {
-      method: 'GET',
-      headers: headers
-    });
+    var resp = await fetch(url);
     
     console.log('📡 Status:', resp.status);
     
     if(!resp.ok) {
       var erro = await resp.text();
       console.error('❌ Erro:', resp.status, erro);
-      document.getElementById('greeting-subtitle').textContent = 'Erro ' + resp.status + ' ao carregar dashboards';
+      document.getElementById('greeting-subtitle').textContent = 'Erro ' + resp.status;
       return;
     }
     
     todosDashboards = await resp.json();
-    console.log('✓ Dashboards carregados:', todosDashboards.length);
+    console.log('✓ Carregados:', todosDashboards.length, 'dashboards');
     
     if(todosDashboards.length === 0) {
-      console.warn('⚠️ Nenhum dashboard encontrado');
-      document.getElementById('greeting-subtitle').textContent = 'Nenhum dashboard disponível';
+      console.warn('⚠️ Nenhum dashboard');
+      document.getElementById('greeting-subtitle').textContent = 'Nenhum dashboard';
       return;
     }
     
     renderizarCategorias();
-    console.log('✅ APP PRONTO!');
+    console.log('✅ PRONTO!');
     
   } catch(e) {
     console.error('❌ ERRO:', e);
@@ -476,34 +466,25 @@ function renderizarCategorias() {
     categorias[cat]++;
   });
   
-  console.log('📂 Categorias:', Object.keys(categorias));
-  
   var html = '';
   Object.keys(categorias).sort().forEach(cat => {
     html += '<div class="category-item" onclick="filtrarCategoria(\'' + esc(cat) + '\')">' +
-      '<span>📊</span> ' + esc(cat) +
-      '</div>';
+      '<span>📊</span> ' + esc(cat) + '</div>';
   });
   
   document.getElementById('categories-list').innerHTML = html;
   
   if(Object.keys(categorias).length > 0) {
-    var primeira = Object.keys(categorias).sort()[0];
-    filtrarCategoria(primeira);
+    filtrarCategoria(Object.keys(categorias).sort()[0]);
   }
 }
 
 function filtrarCategoria(categoria) {
-  console.log('🔍 Filtrando:', categoria);
   categoriaAtiva = categoria;
   
   var items = document.querySelectorAll('.category-item');
   items.forEach(item => {
-    if(item.textContent.includes(categoria)) {
-      item.classList.add('active');
-    } else {
-      item.classList.remove('active');
-    }
+    item.classList.toggle('active', item.textContent.includes(categoria));
   });
   
   renderizarDashboards(categoria);
@@ -513,12 +494,10 @@ function renderizarDashboards(categoria) {
   var grid = document.getElementById('dashboard-grid');
   var filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
   
-  console.log('📊 Renderizando', filtrados.length, 'dashboards');
-  
   document.getElementById('greeting-subtitle').textContent = 'Dashboards de ' + esc(categoria);
   
   if(!filtrados.length) {
-    grid.innerHTML = '<div class="empty-state">Nenhum dashboard nessa categoria</div>';
+    grid.innerHTML = '<div class="empty-state">Nenhum dashboard</div>';
     return;
   }
   
@@ -527,7 +506,6 @@ function renderizarDashboards(categoria) {
   
   filtrados.forEach((d, idx) => {
     var icon = icons[idx % icons.length];
-    
     html += '<div class="card">' +
       '<div class="card-icon">' + icon + '</div>' +
       '<div class="card-title">' + esc(d.titulo) + '</div>' +
@@ -552,7 +530,7 @@ async function sair() {
   window.location.href = './login.html';
 }
 
-console.log('✓ Funções prontas');
+console.log('✓ Pronto!');
 </script>
 
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
