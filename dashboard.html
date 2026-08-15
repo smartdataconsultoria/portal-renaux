@@ -5,16 +5,340 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Grupo Renaux Service | Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<<<<<<< HEAD
 
 <!-- Importar CSS -->
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="css/dashboard.css">
+=======
+<style>
+:root {
+  --navy: #0b1220;
+  --navy-mid: #1a2332;
+  --navy-dark: #0f1820;
+  --gold: #c8922a;
+  --gold-light: #e8a93a;
+  --text: #e8edf5;
+  --text-muted: #8899bb;
+  --border: #2a3d52;
+}
+
+* {margin:0;padding:0;box-sizing:border-box}
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  background: var(--navy-mid);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  margin-bottom: 40px;
+}
+
+.logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.logo-text span {
+  color: var(--gold);
+}
+
+.logo-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.nav-section {
+  margin-bottom: 30px;
+}
+
+.nav-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all .2s;
+  margin-bottom: 4px;
+  border-left: 3px solid transparent;
+}
+
+.category-item:hover {
+  background: rgba(200,146,42,.1);
+  color: var(--gold);
+}
+
+.category-item.active {
+  background: rgba(200,146,42,.15);
+  color: var(--gold);
+  font-weight: 600;
+  border-left-color: var(--gold);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.user-info {
+  padding: 12px;
+  border-radius: 6px;
+  background: rgba(200,146,42,.08);
+  margin-bottom: 12px;
+}
+
+.user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.user-email {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.btn-sair {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-sair:hover {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--navy-dark);
+  overflow: hidden;
+}
+
+.header {
+  height: 80px;
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-title h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+
+.badge-powerbi {
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.header-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.greeting {
+  margin-bottom: 30px;
+}
+
+.greeting-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.greeting-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all .3s;
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 24px rgba(200,146,42,.15);
+  transform: translateY(-2px);
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--gold);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.card-category {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.card-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.card-link:hover {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--navy);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+</style>
+>>>>>>> origin/main
 </head>
 <body>
 
 <div class="container">
+<<<<<<< HEAD
   <!-- SIDEBAR -->
+=======
+>>>>>>> origin/main
   <div class="sidebar">
     <div class="sidebar-header">
       <div class="logo-text">RENAUX <span>SERVICE</span></div>
@@ -31,11 +355,18 @@
         <div class="user-name" id="user-name">Carregando...</div>
         <div class="user-email" id="user-email"></div>
       </div>
+<<<<<<< HEAD
       <button class="btn-sair" onclick="logout()">Sair</button>
     </div>
   </div>
 
   <!-- MAIN CONTENT -->
+=======
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+>>>>>>> origin/main
   <div class="main">
     <div class="header">
       <div class="header-title">
@@ -48,7 +379,11 @@
     <div class="content">
       <div class="greeting">
         <div class="greeting-title">Bem-vindo! 👋</div>
+<<<<<<< HEAD
         <div class="greeting-subtitle" id="greeting-subtitle">Carregando...</div>
+=======
+        <div class="greeting-subtitle" id="greeting-subtitle">Carregando dashboards...</div>
+>>>>>>> origin/main
       </div>
 
       <div id="dashboard-grid"></div>
@@ -56,6 +391,7 @@
   </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Importar JavaScript - ORDEM IMPORTANTE! -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
@@ -66,3 +402,175 @@
 
 </body>
 </html>
+=======
+<script>
+console.log('🟡 [INIT] Script iniciado');
+
+var SB_URL = 'https://rbahvyejqybajnufftio.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2ZWpxeWJham51ZmZ0aW8iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3NDA2MDkyMiwiZXhwIjoyMDg5NjM2OTIyfQ.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
+var sb = null;
+var usr = {};
+var todosDashboards = [];
+var categoriaAtiva = null;
+
+console.log('✓ Variáveis globais definidas');
+
+function iniciarApp() {
+  console.log('✅ [SUPABASE LOADED] Biblioteca carregada');
+  
+  if(typeof supabase === 'undefined') {
+    console.error('❌ Supabase indefinido');
+    setTimeout(iniciarApp, 100);
+    return;
+  }
+  
+  try {
+    console.log('🔧 Criando cliente...');
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    console.log('✓ Cliente criado');
+    carregarAplicacao();
+  } catch(e) {
+    console.error('❌ Erro:', e.message);
+  }
+}
+
+async function carregarAplicacao() {
+  try {
+    console.log('🔐 Verificando sessão...');
+    
+    var {data:{session}} = await sb.auth.getSession();
+    
+    if(!session) {
+      console.log('❌ Sem sessão');
+      setTimeout(() => window.location.href = './login.html', 1500);
+      return;
+    }
+    
+    console.log('✅ Autenticado:', session.user.email);
+    usr = {email: session.user.email, token: session.access_token};
+    
+    document.getElementById('user-name').textContent = session.user.email.split('@')[0];
+    document.getElementById('user-email').textContent = session.user.email;
+    
+    var now = new Date();
+    var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    var dateStr = now.toLocaleDateString('pt-BR', options);
+    document.getElementById('current-date').textContent = dateStr;
+    
+    console.log('📊 Carregando dashboards...');
+    
+    var emailEncoded = encodeURIComponent(usr.email);
+    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + SB_KEY;
+    
+    console.log('🔗 URL:', url);
+    
+    var resp = await fetch(url);
+    
+    console.log('📡 Status:', resp.status);
+    
+    if(!resp.ok) {
+      var erro = await resp.text();
+      console.error('❌ Erro:', resp.status, erro);
+      document.getElementById('greeting-subtitle').textContent = 'Erro ' + resp.status;
+      return;
+    }
+    
+    todosDashboards = await resp.json();
+    console.log('✓ Carregados:', todosDashboards.length, 'dashboards');
+    
+    if(todosDashboards.length === 0) {
+      console.warn('⚠️ Nenhum dashboard');
+      document.getElementById('greeting-subtitle').textContent = 'Nenhum dashboard';
+      return;
+    }
+    
+    renderizarCategorias();
+    console.log('✅ PRONTO!');
+    
+  } catch(e) {
+    console.error('❌ ERRO:', e);
+    document.getElementById('greeting-subtitle').textContent = 'Erro: ' + e.message;
+  }
+}
+
+function renderizarCategorias() {
+  var categorias = {};
+  
+  todosDashboards.forEach(d => {
+    var cat = d.categoria || 'Sem Categoria';
+    if(!categorias[cat]) categorias[cat] = 0;
+    categorias[cat]++;
+  });
+  
+  var html = '';
+  Object.keys(categorias).sort().forEach(cat => {
+    html += '<div class="category-item" onclick="filtrarCategoria(\'' + esc(cat) + '\')">' +
+      '<span>📊</span> ' + esc(cat) + '</div>';
+  });
+  
+  document.getElementById('categories-list').innerHTML = html;
+  
+  if(Object.keys(categorias).length > 0) {
+    filtrarCategoria(Object.keys(categorias).sort()[0]);
+  }
+}
+
+function filtrarCategoria(categoria) {
+  categoriaAtiva = categoria;
+  
+  var items = document.querySelectorAll('.category-item');
+  items.forEach(item => {
+    item.classList.toggle('active', item.textContent.includes(categoria));
+  });
+  
+  renderizarDashboards(categoria);
+}
+
+function renderizarDashboards(categoria) {
+  var grid = document.getElementById('dashboard-grid');
+  var filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
+  
+  document.getElementById('greeting-subtitle').textContent = 'Dashboards de ' + esc(categoria);
+  
+  if(!filtrados.length) {
+    grid.innerHTML = '<div class="empty-state">Nenhum dashboard</div>';
+    return;
+  }
+  
+  var icons = ['📊', '📈', '📉', '💼', '🎯', '🔍'];
+  var html = '<div class="grid">';
+  
+  filtrados.forEach((d, idx) => {
+    var icon = icons[idx % icons.length];
+    html += '<div class="card">' +
+      '<div class="card-icon">' + icon + '</div>' +
+      '<div class="card-title">' + esc(d.titulo) + '</div>' +
+      '<div class="card-category">' + esc(categoria) + '</div>' +
+      '<div class="card-description">' + esc(d.descricao || 'Dashboard') + '</div>' +
+      '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir</a>' +
+      '</div>';
+  });
+  
+  html += '</div>';
+  grid.innerHTML = html;
+}
+
+function esc(s) {
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+async function sair() {
+  if(sb) await sb.auth.signOut();
+  window.location.href = './login.html';
+}
+
+console.log('✓ Pronto!');
+</script>
+
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
+
+</body>
+</html>
+>>>>>>> origin/main
