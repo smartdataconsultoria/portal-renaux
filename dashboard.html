@@ -79,29 +79,30 @@ body {
   padding-left: 4px;
 }
 
-.nav-item {
+.category-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
   color: var(--text-muted);
-  text-decoration: none;
-  border-radius: 6px;
   cursor: pointer;
+  border-radius: 6px;
   font-size: 13px;
   transition: all .2s;
   margin-bottom: 4px;
+  border-left: 3px solid transparent;
 }
 
-.nav-item:hover {
+.category-item:hover {
   background: rgba(200,146,42,.1);
   color: var(--gold);
 }
 
-.nav-item.active {
+.category-item.active {
   background: rgba(200,146,42,.15);
   color: var(--gold);
   font-weight: 600;
+  border-left-color: var(--gold);
 }
 
 .sidebar-footer {
@@ -218,20 +219,6 @@ body {
   font-style: italic;
 }
 
-.section-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 20px;
-  margin-top: 30px;
-}
-
-.section-title:first-of-type {
-  margin-top: 0;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -321,26 +308,6 @@ body {
   color: var(--text-muted);
 }
 
-.loading {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.spinner {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(200,146,42,.2);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* SCROLLBAR */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -370,8 +337,8 @@ body {
     </div>
 
     <div class="nav-section">
-      <div class="nav-title">NAVEGAÇÃO</div>
-      <a class="nav-item active" onclick="return false">📊 Dashboards</a>
+      <div class="nav-title">CATEGORIAS</div>
+      <div id="categories-list"></div>
     </div>
 
     <div class="sidebar-footer">
@@ -396,7 +363,7 @@ body {
     <div class="content">
       <div class="greeting">
         <div class="greeting-title">Bem-vindo! 👋</div>
-        <div class="greeting-subtitle">Selecione um dashboard abaixo para visualizar em tela cheia</div>
+        <div class="greeting-subtitle" id="greeting-subtitle">Selecione uma categoria para visualizar os dashboards</div>
       </div>
 
       <div id="dashboard-grid"></div>
@@ -410,10 +377,11 @@ console.log('🟡 [INIT] Script iniciado');
 
 // ========== VARIÁVEIS GLOBAIS ==========
 var SB_URL = 'https://rbahvyejqybajnufftio.supabase.co';
-var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2ZWpxeWJham51ZmZ0aW8iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3NDA2MDkyMiwiZXhwIjoyMDg5NjM2OTIyfQ.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
 var sb = null;
 var usr = {};
 var todosDashboards = [];
+var categoriaAtiva = null;
 
 console.log('✓ Variáveis definidas');
 
@@ -464,14 +432,14 @@ async function carregarAplicacao() {
     
     console.log('📊 Carregando dashboards...');
     var headers = {'apikey': SB_KEY, 'Authorization': 'Bearer ' + usr.token};
-    var resp = await fetch(SB_URL + '/rest/v1/dashboards_clientes?select=*', {headers: headers});
+    var resp = await fetch(SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + encodeURIComponent(usr.email), {headers: headers});
     
     if(resp.ok) {
       todosDashboards = await resp.json();
       console.log('✓ Carregados:', todosDashboards.length);
     }
     
-    renderizar();
+    renderizarCategorias();
     console.log('✅✅✅ APP PRONTO! ✅✅✅');
     
   } catch(e) {
@@ -480,44 +448,74 @@ async function carregarAplicacao() {
   }
 }
 
-function renderizar() {
-  var grid = document.getElementById('dashboard-grid');
+function renderizarCategorias() {
+  var categorias = {};
   
-  if(!todosDashboards.length) {
-    grid.innerHTML = '<div class="empty-state">Nenhum dashboard disponível</div>';
-    return;
-  }
-  
-  // Agrupar por categoria
-  var porCategoria = {};
   todosDashboards.forEach(d => {
     var cat = d.categoria || 'Sem Categoria';
-    if(!porCategoria[cat]) porCategoria[cat] = [];
-    porCategoria[cat].push(d);
+    if(!categorias[cat]) categorias[cat] = 0;
+    categorias[cat]++;
   });
   
   var html = '';
-  
-  Object.keys(porCategoria).forEach(categoria => {
-    html += '<div class="section-title">' + esc(categoria) + '</div>';
-    html += '<div class="grid">';
-    
-    porCategoria[categoria].forEach((d, idx) => {
-      var icons = ['📊', '📈', '📉', '💼', '🎯', '🔍'];
-      var icon = icons[idx % icons.length];
-      
-      html += '<div class="card">' +
-        '<div class="card-icon">' + icon + '</div>' +
-        '<div class="card-title">' + esc(d.titulo) + '</div>' +
-        '<div class="card-category">' + esc(categoria) + '</div>' +
-        '<div class="card-description">' + esc(d.descricao || 'Dashboard de análise de dados') + '</div>' +
-        '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir no Power BI</a>' +
-        '</div>';
-    });
-    
-    html += '</div>';
+  Object.keys(categorias).forEach(cat => {
+    html += '<div class="category-item" onclick="filtrarCategoria(\'' + esc(cat) + '\')">' +
+      '<span>📊</span> ' + esc(cat) +
+      '</div>';
   });
   
+  document.getElementById('categories-list').innerHTML = html;
+  
+  // Carregar primeira categoria
+  if(Object.keys(categorias).length > 0) {
+    filtrarCategoria(Object.keys(categorias)[0]);
+  }
+}
+
+function filtrarCategoria(categoria) {
+  categoriaAtiva = categoria;
+  
+  // Atualizar estilo da sidebar
+  var items = document.querySelectorAll('.category-item');
+  items.forEach(item => {
+    if(item.textContent.includes(categoria)) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+  
+  // Renderizar dashboards
+  renderizarDashboards(categoria);
+}
+
+function renderizarDashboards(categoria) {
+  var grid = document.getElementById('dashboard-grid');
+  var filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
+  
+  document.getElementById('greeting-subtitle').textContent = 'Dashboards de ' + esc(categoria);
+  
+  if(!filtrados.length) {
+    grid.innerHTML = '<div class="empty-state">Nenhum dashboard nessa categoria</div>';
+    return;
+  }
+  
+  var icons = ['📊', '📈', '📉', '💼', '🎯', '🔍'];
+  var html = '<div class="grid">';
+  
+  filtrados.forEach((d, idx) => {
+    var icon = icons[idx % icons.length];
+    
+    html += '<div class="card">' +
+      '<div class="card-icon">' + icon + '</div>' +
+      '<div class="card-title">' + esc(d.titulo) + '</div>' +
+      '<div class="card-category">' + esc(categoria) + '</div>' +
+      '<div class="card-description">' + esc(d.descricao || 'Dashboard de análise de dados') + '</div>' +
+      '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir no Power BI</a>' +
+      '</div>';
+  });
+  
+  html += '</div>';
   grid.innerHTML = html;
 }
 
@@ -535,7 +533,7 @@ async function sair() {
 console.log('✓ Funções definidas');
 </script>
 
-<!-- SUPABASE - CARREGAR AGORA -->
+<!-- SUPABASE -->
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
 
 </body>
