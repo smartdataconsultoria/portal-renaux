@@ -4,8 +4,22 @@ let categoriaAtiva = null;
 async function carregarDashboards(email) {
   console.log('📊 Carregando dashboards para:', email);
   
-  const emailEncoded = encodeURIComponent(email);
-  const url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + CONFIG.SB_KEY;
+  // Verificar se é diretor
+  const isDiretor = CONFIG.DIRETORES.includes(email);
+  console.log('🔑 É diretor?', isDiretor);
+  
+  let url;
+  
+  if(isDiretor) {
+    // Diretores veem TODOS os dashboards da Renaux
+    url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
+    console.log('👔 Carregando TODOS os dashboards da Renaux (Diretor)');
+  } else {
+    // Outros usuários veem apenas seus dashboards
+    const emailEncoded = encodeURIComponent(email);
+    url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + CONFIG.SB_KEY;
+    console.log('👤 Carregando dashboards do usuário');
+  }
   
   console.log('🔗 URL:', url);
   
