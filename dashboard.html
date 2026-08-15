@@ -359,7 +359,7 @@ body {
     <div class="content">
       <div class="greeting">
         <div class="greeting-title">Bem-vindo! 👋</div>
-        <div class="greeting-subtitle" id="greeting-subtitle">Carregando categorias...</div>
+        <div class="greeting-subtitle" id="greeting-subtitle">Carregando dashboards...</div>
       </div>
 
       <div id="dashboard-grid"></div>
@@ -424,47 +424,46 @@ async function carregarAplicacao() {
     
     console.log('📊 Carregando dashboards para:', usr.email);
     
+    var emailEncoded = encodeURIComponent(usr.email);
+    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded;
+    
+    console.log('🔗 URL:', url);
+    
     var headers = {
-      'apikey': SB_KEY,
       'Authorization': 'Bearer ' + usr.token,
       'Content-Type': 'application/json'
     };
     
-    var emailEncoded = encodeURIComponent(usr.email);
-    var url = SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded;
-    
-    console.log('🔗 URL da query:', url);
-    
+    console.log('📡 Enviando requisição...');
     var resp = await fetch(url, {
       method: 'GET',
       headers: headers
     });
     
-    console.log('📡 Status da resposta:', resp.status);
+    console.log('📡 Status:', resp.status);
     
     if(!resp.ok) {
       var erro = await resp.text();
-      console.error('❌ Erro na resposta:', resp.status, erro);
-      document.getElementById('greeting-subtitle').textContent = 'Erro ao carregar dashboards: ' + resp.status;
+      console.error('❌ Erro:', resp.status, erro);
+      document.getElementById('greeting-subtitle').textContent = 'Erro ' + resp.status + ' ao carregar dashboards';
       return;
     }
     
     todosDashboards = await resp.json();
-    console.log('✓ Carregados', todosDashboards.length, 'dashboards');
+    console.log('✓ Dashboards carregados:', todosDashboards.length);
     
     if(todosDashboards.length === 0) {
-      console.warn('⚠️ Nenhum dashboard encontrado para este usuário');
+      console.warn('⚠️ Nenhum dashboard encontrado');
       document.getElementById('greeting-subtitle').textContent = 'Nenhum dashboard disponível';
       return;
     }
     
     renderizarCategorias();
-    console.log('✅✅✅ APP PRONTO! ✅✅✅');
+    console.log('✅ APP PRONTO!');
     
   } catch(e) {
-    console.error('❌ ERRO CRÍTICO:', e);
+    console.error('❌ ERRO:', e);
     document.getElementById('greeting-subtitle').textContent = 'Erro: ' + e.message;
-    setTimeout(() => window.location.href = './login.html', 3000);
   }
 }
 
@@ -477,7 +476,7 @@ function renderizarCategorias() {
     categorias[cat]++;
   });
   
-  console.log('📂 Categorias encontradas:', Object.keys(categorias));
+  console.log('📂 Categorias:', Object.keys(categorias));
   
   var html = '';
   Object.keys(categorias).sort().forEach(cat => {
@@ -495,7 +494,7 @@ function renderizarCategorias() {
 }
 
 function filtrarCategoria(categoria) {
-  console.log('🔍 Filtrando por categoria:', categoria);
+  console.log('🔍 Filtrando:', categoria);
   categoriaAtiva = categoria;
   
   var items = document.querySelectorAll('.category-item');
@@ -514,7 +513,7 @@ function renderizarDashboards(categoria) {
   var grid = document.getElementById('dashboard-grid');
   var filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
   
-  console.log('📊 Renderizando', filtrados.length, 'dashboards da categoria:', categoria);
+  console.log('📊 Renderizando', filtrados.length, 'dashboards');
   
   document.getElementById('greeting-subtitle').textContent = 'Dashboards de ' + esc(categoria);
   
@@ -533,8 +532,8 @@ function renderizarDashboards(categoria) {
       '<div class="card-icon">' + icon + '</div>' +
       '<div class="card-title">' + esc(d.titulo) + '</div>' +
       '<div class="card-category">' + esc(categoria) + '</div>' +
-      '<div class="card-description">' + esc(d.descricao || 'Dashboard de análise de dados') + '</div>' +
-      '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir no Power BI</a>' +
+      '<div class="card-description">' + esc(d.descricao || 'Dashboard') + '</div>' +
+      '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir</a>' +
       '</div>';
   });
   
@@ -549,12 +548,11 @@ function esc(s) {
 }
 
 async function sair() {
-  console.log('🚪 Fazendo logout...');
   if(sb) await sb.auth.signOut();
   window.location.href = './login.html';
 }
 
-console.log('✓ Funções definidas');
+console.log('✓ Funções prontas');
 </script>
 
 <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
