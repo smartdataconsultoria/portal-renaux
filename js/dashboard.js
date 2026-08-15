@@ -12,7 +12,7 @@ async function carregarDashboards(email) {
   
   if(isDiretor) {
     // Diretores veem TODOS os dashboards da Renaux
-    const url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&distinct=titulo&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
+    url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
     console.log('👔 Carregando TODOS os dashboards da Renaux (Diretor)');
   } else {
     // Outros usuários veem apenas seus dashboards
@@ -33,8 +33,20 @@ async function carregarDashboards(email) {
       return [];
     }
     
-    todosDashboards = await resp.json();
-    console.log('✓ Carregados:', todosDashboards.length, 'dashboards');
+    let dashboards = await resp.json();
+    
+    // Remover duplicatas pelo título
+    const titulos = new Set();
+    todosDashboards = dashboards.filter(d => {
+      if(titulos.has(d.titulo)) {
+        console.log('🔄 Removendo duplicata:', d.titulo);
+        return false;
+      }
+      titulos.add(d.titulo);
+      return true;
+    });
+    
+    console.log('✓ Carregados:', todosDashboards.length, 'dashboards (sem duplicatas)');
     return todosDashboards;
   } catch(e) {
     console.error('❌ Erro ao carregar:', e);
