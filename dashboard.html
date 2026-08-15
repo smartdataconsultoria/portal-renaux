@@ -100,20 +100,20 @@ html,body{height:100%;font-family:'Poppins',sans-serif;background:var(--navy);co
   </div>
 </div>
 
-<!-- SUPABASE - CARREGAR NO FINAL -->
-<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
-
+<!-- SCRIPT INLINE COM FUNÇÕES DEFINIDAS PRIMEIRO -->
 <script>
 console.log('🟡 [INIT] Script iniciado');
 
-// ========== VARIÁVEIS GLOBAIS (SUPABASE ANTIGO) ==========
+// ========== VARIÁVEIS GLOBAIS ==========
 var SB_URL = 'https://rbahvyejqybajnufftio.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWh2eWVqcXliYWpudWZmdGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNjA5MjIsImV4cCI6MjA4OTYzNjkyMn0.nUIo2CT3o41YL1TT8Hrp5kq-_ZS-bMMf-gvUMCEyYMw';
 var sb = null;
 var usr = {};
 var todosDashboards = [];
 
-console.log('✓ Variáveis globais definidas');
+console.log('✓ Variáveis definidas');
+
+// ========== FUNÇÕES (DEFINIDAS ANTES DO SUPABASE CARREGAR) ==========
 
 function iniciarApp() {
   console.log('✅ [SUPABASE LOADED] Supabase carregado');
@@ -217,8 +217,11 @@ function sair() {
   window.location.href = './login.html';
 }
 
-console.log('✓ Script pronto');
+console.log('✓ Funções definidas');
 </script>
+
+<!-- SUPABASE - CARREGAR AGORA -->
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="iniciarApp()"></script>
 
 </body>
 </html>
