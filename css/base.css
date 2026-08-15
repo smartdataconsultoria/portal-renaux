@@ -1,0 +1,34 @@
+:root {
+  --navy: #0b1220;
+  --navy-mid: #1a2332;
+  --navy-dark: #0f1820;
+  --gold: #c8922a;
+  --gold-light: #e8a93a;
+  --text: #e8edf5;
+  --text-muted: #8899bb;
+  --border: #2a3d52;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+}
