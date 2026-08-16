@@ -118,7 +118,7 @@ function renderizarDashboards(categoria) {
     return;
   }
   
-  const icons = ['📊', '📈', '📉', '💼', '🎯', '🔍'];
+  const icons = ['📊'];
   let html = '<div class="grid">';
   
   filtrados.forEach((d, idx) => {
