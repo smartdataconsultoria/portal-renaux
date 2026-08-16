@@ -4,6 +4,7 @@ const CONFIG = {
   DIRETORES: [
     'fabio@renauxservice.com.br',
     'diego@renauxservice.com.br',
-    'tecnologia@smartdataconsultoria.com'
+    'tecnologia@smartdataconsultoria.com',
+    'comercial@smartdataconsult.com'
   ]
 };
