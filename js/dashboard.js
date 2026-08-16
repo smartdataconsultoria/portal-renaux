@@ -1,21 +1,27 @@
+// ===== FUNÇÃO ESC - DEVE ESTAR PRIMEIRO =====
+function esc(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ===== VARIÁVEIS GLOBAIS =====
 let todosDashboards = [];
 let categoriaAtiva = null;
 
+// ===== CARREGAR DASHBOARDS =====
 async function carregarDashboards(email) {
   console.log('📊 Carregando dashboards para:', email);
   
-  // Verificar se é diretor
   const isDiretor = CONFIG.DIRETORES.includes(email);
   console.log('🔑 É diretor?', isDiretor);
   
   let url;
   
   if(isDiretor) {
-    // Diretores veem TODOS os dashboards da Renaux
     url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
     console.log('👔 Carregando TODOS os dashboards da Renaux (Diretor)');
   } else {
-    // Outros usuários veem apenas seus dashboards
     const emailEncoded = encodeURIComponent(email);
     url = CONFIG.SB_URL + '/rest/v1/dashboards_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + CONFIG.SB_KEY;
     console.log('👤 Carregando dashboards do usuário');
@@ -35,7 +41,6 @@ async function carregarDashboards(email) {
     
     let dashboards = await resp.json();
     
-    // Remover duplicatas pelo título
     const titulos = new Set();
     todosDashboards = dashboards.filter(d => {
       if(titulos.has(d.titulo)) {
@@ -54,6 +59,7 @@ async function carregarDashboards(email) {
   }
 }
 
+// ===== RENDERIZAR CATEGORIAS =====
 function renderizarCategorias() {
   console.log('📂 Renderizando categorias...');
   
@@ -81,6 +87,7 @@ function renderizarCategorias() {
   }
 }
 
+// ===== FILTRAR CATEGORIA =====
 function filtrarCategoria(categoria) {
   console.log('🔍 Filtrando por:', categoria);
   categoriaAtiva = categoria;
@@ -97,6 +104,7 @@ function filtrarCategoria(categoria) {
   renderizarDashboards(categoria);
 }
 
+// ===== RENDERIZAR DASHBOARDS =====
 function renderizarDashboards(categoria) {
   const grid = document.getElementById('dashboard-grid');
   const filtrados = todosDashboards.filter(d => (d.categoria || 'Sem Categoria') === categoria);
@@ -115,11 +123,19 @@ function renderizarDashboards(categoria) {
   
   filtrados.forEach((d, idx) => {
     const icon = icons[idx % icons.length];
+    
+    let dataAtualizacao = '';
+    if(d._em) {
+      const data = new Date(d._em);
+      dataAtualizacao = data.toLocaleDateString('pt-BR') + ' às ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+    
     html += '<div class="card">' +
       '<div class="card-icon">' + icon + '</div>' +
       '<div class="card-title">' + esc(d.titulo) + '</div>' +
       '<div class="card-category">' + esc(categoria) + '</div>' +
       '<div class="card-description">' + esc(d.descricao || 'Dashboard') + '</div>' +
+      '<div class="card-updated">' + (dataAtualizacao ? '🕐 Atualizado: ' + dataAtualizacao : '') + '</div>' +
       '<a href="' + esc(d.url) + '" target="_blank" class="card-link">🔗 Abrir</a>' +
       '</div>';
   });
@@ -127,6 +143,8 @@ function renderizarDashboards(categoria) {
   html += '</div>';
   grid.innerHTML = html;
 }
+
+// ===== CARREGAR BANCO DE DADOS =====
 async function carregarBancoDados(email) {
   console.log('📊 Carregando banco de dados para:', email);
   
@@ -135,10 +153,8 @@ async function carregarBancoDados(email) {
   let url;
   
   if(isDiretor) {
-    // Diretores veem TUDO
     url = CONFIG.SB_URL + '/rest/v1/arquivos_clientes?select=*&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
   } else {
-    // Outros veem apenas os seus
     const emailEncoded = encodeURIComponent(email);
     url = CONFIG.SB_URL + '/rest/v1/arquivos_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + CONFIG.SB_KEY;
   }
@@ -162,6 +178,7 @@ async function carregarBancoDados(email) {
   }
 }
 
+// ===== RENDERIZAR BANCO DE DADOS =====
 function renderizarBancoDados(arquivos) {
   const container = document.getElementById('database-list');
   
@@ -170,7 +187,6 @@ function renderizarBancoDados(arquivos) {
     return;
   }
   
-  // 1. Remover duplicatas pelo nome
   const nomesSeen = new Set();
   const arquivosUnicos = arquivos.filter(arquivo => {
     if(nomesSeen.has(arquivo.nome)) {
@@ -181,19 +197,16 @@ function renderizarBancoDados(arquivos) {
     return true;
   });
   
-  // 2. Ordenar alfabeticamente
   arquivosUnicos.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   
   let html = '';
   
   arquivosUnicos.forEach(arquivo => {
-    // 3. Melhorar formatação do nome
     let nomeFormatado = arquivo.nome
-      .replace(/_/g, ' ')  // Trocar underscores por espaços
-      .replace('Sao ', 'São ')  // Corrigir São Paulo
-      .replace(/\b\w/g, char => char.toUpperCase());  // Capitalizar primeira letra
+      .replace(/_/g, ' ')
+      .replace('Sao ', 'São ')
+      .replace(/\b\w/g, char => char.toUpperCase());
     
-    // 4. Selecionar ícone baseado no nome
     let icone = '📄';
     if(arquivo.nome.toLowerCase().includes('base')) {
       icone = '🗄️';
@@ -213,4 +226,10 @@ function renderizarBancoDados(arquivos) {
   
   container.innerHTML = html;
   console.log('✓ Base de dados renderizada com', arquivosUnicos.length, 'arquivos únicos');
+}
+
+// ===== ABRIR ARQUIVO =====
+function abrirArquivo(url, nome) {
+  console.log('📂 Abrindo:', nome);
+  window.open(url, '_blank');
 }
