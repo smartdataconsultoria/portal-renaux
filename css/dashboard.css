@@ -168,6 +168,33 @@
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 4px;
+
+  .header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-sair-header {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--gold), #d4a574);
+  color: var(--navy);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+}
+
+.btn-sair-header:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(200, 146, 42, 0.4);
+}
+
+.btn-sair-header:active {
+  transform: scale(0.98);
+}
 }
 
 ::-webkit-scrollbar-thumb:hover {
