@@ -170,25 +170,47 @@ function renderizarBancoDados(arquivos) {
     return;
   }
   
+  // 1. Remover duplicatas pelo nome
+  const nomesSeen = new Set();
+  const arquivosUnicos = arquivos.filter(arquivo => {
+    if(nomesSeen.has(arquivo.nome)) {
+      console.log('🔄 Removendo duplicata:', arquivo.nome);
+      return false;
+    }
+    nomesSeen.add(arquivo.nome);
+    return true;
+  });
+  
+  // 2. Ordenar alfabeticamente
+  arquivosUnicos.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  
   let html = '';
   
-  arquivos.forEach(arquivo => {
-    html += '<div class="database-item" onclick="abrirArquivo(\'' + esc(arquivo.url) + '\', \'' + esc(arquivo.nome) + '\')">' +
-      '<span class="database-icon">📄</span> ' +
-      '<strong>' + esc(arquivo.nome) + '</strong>' +
+  arquivosUnicos.forEach(arquivo => {
+    // 3. Melhorar formatação do nome
+    let nomeFormatado = arquivo.nome
+      .replace(/_/g, ' ')  // Trocar underscores por espaços
+      .replace('Sao ', 'São ')  // Corrigir São Paulo
+      .replace(/\b\w/g, char => char.toUpperCase());  // Capitalizar primeira letra
+    
+    // 4. Selecionar ícone baseado no nome
+    let icone = '📄';
+    if(arquivo.nome.toLowerCase().includes('base')) {
+      icone = '🗄️';
+    } else if(arquivo.nome.toLowerCase().includes('planilha')) {
+      icone = '📊';
+    } else if(arquivo.nome.toLowerCase().includes('pasta') || arquivo.nome.toLowerCase().includes('dre')) {
+      icone = '📁';
+    } else if(arquivo.nome.toLowerCase().includes('orçado') || arquivo.nome.toLowerCase().includes('orcado')) {
+      icone = '💰';
+    }
+    
+    html += '<div class="database-item" onclick="abrirArquivo(\'' + esc(arquivo.url) + '\', \'' + esc(arquivo.nome) + '\')" title="' + esc(arquivo.nome) + '">' +
+      '<span class="database-icon">' + icone + '</span> ' +
+      '<strong>' + esc(nomeFormatado) + '</strong>' +
       '</div>';
   });
   
   container.innerHTML = html;
-}
-
-function abrirArquivo(url, nome) {
-  console.log('📂 Abrindo:', nome);
-  window.open(url, '_blank');
-}
-
-function esc(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
+  console.log('✓ Base de dados renderizada com', arquivosUnicos.length, 'arquivos únicos');
 }
