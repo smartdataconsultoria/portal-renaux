@@ -127,6 +127,65 @@ function renderizarDashboards(categoria) {
   html += '</div>';
   grid.innerHTML = html;
 }
+async function carregarBancoDados(email) {
+  console.log('📊 Carregando banco de dados para:', email);
+  
+  const isDiretor = CONFIG.DIRETORES.includes(email);
+  
+  let url;
+  
+  if(isDiretor) {
+    // Diretores veem TUDO
+    url = CONFIG.SB_URL + '/rest/v1/arquivos_clientes?select=*&empresa=eq.Renaux&apikey=' + CONFIG.SB_KEY;
+  } else {
+    // Outros veem apenas os seus
+    const emailEncoded = encodeURIComponent(email);
+    url = CONFIG.SB_URL + '/rest/v1/arquivos_clientes?select=*&email_cliente=eq.' + emailEncoded + '&apikey=' + CONFIG.SB_KEY;
+  }
+  
+  try {
+    const resp = await fetch(url);
+    
+    if(!resp.ok) {
+      console.error('❌ Erro ao carregar banco de dados');
+      return [];
+    }
+    
+    const arquivos = await resp.json();
+    console.log('✓ Carregados:', arquivos.length, 'arquivos');
+    
+    renderizarBancoDados(arquivos);
+    return arquivos;
+  } catch(e) {
+    console.error('❌ Erro:', e);
+    return [];
+  }
+}
+
+function renderizarBancoDados(arquivos) {
+  const container = document.getElementById('database-list');
+  
+  if(!arquivos || arquivos.length === 0) {
+    container.innerHTML = '<div style="padding: 10px; font-size: 12px; color: #9ca3af;">Nenhum arquivo disponível</div>';
+    return;
+  }
+  
+  let html = '';
+  
+  arquivos.forEach(arquivo => {
+    html += '<div class="database-item" onclick="abrirArquivo(\'' + esc(arquivo.url) + '\', \'' + esc(arquivo.nome) + '\')">' +
+      '<span class="database-icon">📄</span> ' +
+      '<strong>' + esc(arquivo.nome) + '</strong>' +
+      '</div>';
+  });
+  
+  container.innerHTML = html;
+}
+
+function abrirArquivo(url, nome) {
+  console.log('📂 Abrindo:', nome);
+  window.open(url, '_blank');
+}
 
 function esc(s) {
   const div = document.createElement('div');
