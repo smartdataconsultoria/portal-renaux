@@ -40,6 +40,8 @@ async function iniciarApp() {
   
   // 7. Renderizar categorias e dashboards
   renderizarCategorias();
+  // Carregar banco de dados
+  await carregarBancoDados(email);
   
   console.log('✅ App pronto!');
 }
