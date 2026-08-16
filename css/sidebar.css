@@ -112,3 +112,26 @@
   background: var(--gold);
   color: var(--navy);
 }
+.database-item {
+  padding: 12px 15px;
+  margin: 8px 0;
+  border-left: 3px solid var(--gold);
+  background: rgba(200, 146, 42, 0.1);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.3s;
+}
+
+.database-item:hover {
+  background: rgba(200, 146, 42, 0.2);
+  transform: translateX(5px);
+}
+
+.database-item.active {
+  background: rgba(200, 146, 42, 0.3);
+}
+
+.database-icon {
+  margin-right: 8px;
+}
