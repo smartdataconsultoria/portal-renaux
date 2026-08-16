@@ -176,27 +176,25 @@
 }
 
 .btn-sair-header {
-  padding: 8px 20px;
+  padding: 12px 28px;
   background: linear-gradient(135deg, var(--gold), #d4a574);
   color: var(--navy);
-  border: none;
+  border: 2px solid var(--gold);
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 14px;
   transition: all 0.3s;
+  min-width: 120px;
+  text-align: center;
 }
 
 .btn-sair-header:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(200, 146, 42, 0.4);
+  background: linear-gradient(135deg, #d4a574, var(--gold));
+  box-shadow: 0 6px 16px rgba(200, 146, 42, 0.5);
+  transform: translateY(-2px);
 }
 
 .btn-sair-header:active {
-  transform: scale(0.98);
-}
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  transform: translateY(0);
 }
